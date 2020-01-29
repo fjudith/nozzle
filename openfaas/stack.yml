@@ -1,0 +1,38 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:8080
+
+functions:
+  publish-resources:
+    lang: python3
+    handler: ./publish-resources
+    image: fjudith/publish-resources:openfaas
+    environment:
+      NATS_ADDRESS: nats://nats-cluster.nats-io:4222
+
+  downscale-replicas:
+    lang: python3
+    handler: ./downscale-replicas
+    image: fjudith/downscale-replicas:openfaas
+    environment:
+      NATS_ADDRESS: nats://nats-cluster.nats-io:4222
+
+  update-ingress:
+    lang: python3
+    handler: ./update-ingress
+    image: fjudith/update-ingress:openfaas
+    environment:
+      NATS_ADDRESS: nats://nats-cluster.nats-io:4222
+  
+  web-rescaler:
+    lang: python3
+    handler: ./web-rescaler
+    image: fjudith/web-rescaler:openfaas
+
+  rescale-replicas:
+    lang: python3
+    handler: ./rescale-replicas
+    image: fjudith/rescale-replicas:openfaas
+    environment:
+      NATS_ADDRESS: nats://nats-cluster.nats-io:4222
