@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: openfaas
+    group: io.openfaas.k8s.management
+  name:  openfaas-ingress-manage
+  namespace: openfaas-fn
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: openfaas
+    group: io.openfaas.k8s.management
+  name: openfaas-ingress-manage-role-binding
+  namespace: openfaas-fn
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: openfaas-ingress-manage-role
+subjects:
+  - kind: ServiceAccount
+    name: openfaas-ingress-manage
+    namespace: openfaas-fn
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: openfaas
+    group: io.openfaas.k8s.management
+  name: openfaas-ingress-manage-role
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces","services"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - update
+      - patch
+  - apiGroups:
+      - extensions
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - create
+      - patch
+      - update
+      - delete
+
