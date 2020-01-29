@@ -8,6 +8,8 @@ functions:
     lang: python3
     handler: ./publish-resources
     image: fjudith/publish-resources:openfaas
+    annotations:
+      com.openfaas.serviceaccount: replica-view
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
 
@@ -15,6 +17,8 @@ functions:
     lang: python3
     handler: ./downscale-replicas
     image: fjudith/downscale-replicas:openfaas
+    annotations:
+      com.openfaas.serviceaccount: replica-manage
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
 
@@ -22,17 +26,23 @@ functions:
     lang: python3
     handler: ./update-ingress
     image: fjudith/update-ingress:openfaas
+    annotations:
+      com.openfaas.serviceaccount: ingress-manage
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
   
   web-rescaler:
     lang: python3
     handler: ./web-rescaler
+    annotations:
+      com.openfaas.serviceaccount: replica-manage # TODO: dedicated RBAC
     image: fjudith/web-rescaler:openfaas
 
   rescale-replicas:
     lang: python3
     handler: ./rescale-replicas
     image: fjudith/rescale-replicas:openfaas
+    annotations:
+      com.openfaas.serviceaccount: replica-manage
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
