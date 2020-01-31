@@ -10,6 +10,8 @@ functions:
     image: fjudith/publish-resources:openfaas
     annotations:
       com.openfaas.serviceaccount: replica-view
+      topic: cron-function
+      schedule: "*/1 * * * *"
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
 
