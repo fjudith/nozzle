@@ -107,7 +107,7 @@ Execute the follwing command line to deploy the function that handle the `web-re
 ```bash
 kubeless function deploy web-rescaler --namespace kubeless --runtime python3.6 --handler web-rescaler.create --from-file functions/web-rescaler.py --dependencies functions/web-requirements.txt && \
 kubectl apply -n kubeless -f manifests/kubeless-ingress-manage-rbac.yaml && \
-kubectl -n kubeless patch deployment web-rescaler -p '{"spec":{"template":{"spec":{"serviceAccountName":"kubeless-ingress-manage"}}}}'
+kubectl -n kubeless patch deployment web-rescaler -p '{"spec":{"template":{"spec":{"serviceAccountName":"kubeless-deployment-manage"}}}}'
 ```
 
 ```bash
