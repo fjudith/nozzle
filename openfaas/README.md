@@ -32,12 +32,14 @@ Instructions to install it on your PC are documented [here](https://docs.openfaa
 Run the following command to build the functions container images, push them to docker hub registry and publish the functions in the Kubernetes cluster via the Openfass Gateway.
 
 ```bash
-# Build
-faas-cli build -f stack.yml -o dev
+# Deploy appropriate RBAC and demo environment
+kubectl apply -f manifests/
 
-# Release
-faas-cli push -f stack.yml
+# Build | Release | Deploy
+# Equivalent to:
+# faas-cli build -f stack.yml -o dev && \
+# faas-cli push -f stack.yml && \
+# faas-cli deploy -f stack.yml "
 
-# Deploy
-faas-cli deploy -f stack.yml 
+faas-cli up stack.yml -o dev
 ```
