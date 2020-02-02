@@ -40,7 +40,7 @@ functions:
     handler: ./web-rescaler
     image: docker.io/fjudith/web-rescaler:openfaas
     annotations:
-      com.openfaas.serviceaccount: openfaas-replica-manage # TODO: dedicated RBAC
+      com.openfaas.serviceaccount: openfaas-deployment-manage
       topic: "k8s_ingresses"
     
 

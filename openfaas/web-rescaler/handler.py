@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from kubernetes import client, config, watch
 from kubernetes.client.rest import ApiException
 
-from bottle import route, run, template, request
+# from bottle import route, run, template, request
 
 parser = argparse.ArgumentParser()
 # Kubernetes related arguments
@@ -230,11 +230,12 @@ def configmap(req):
 
 
 def handle(req):
-    configmap(req)
-    service(req)
-    deployment(req)
+    payload = json.loads(req)
+    configmap(payload)
+    service(payload)
+    deployment(payload)
 
 if __name__ == '__main__':
-    req = {"data": {"apiVersion": "extensions/v1beta1", "kind": "Ingress", "metadata": {"annotations": {"certmanager.k8s.io/cluster-issuer": "letsencrypt-prod", "kubernetes.io/ingress.class": "nginx", "kubernetes.io/tls-acme": "true"}, "name": "nginx-sts", "namespace": "demo"}, "spec": {"rules": [{"host": "demo-sts.example.com", "http": {"paths": [{"backend": {"serviceName": "nginx-deploy", "servicePort": 80}, "path": "/deployment"}, {"backend": {"serviceName": "nginx-sts", "servicePort": 80}, "path": "/statefulset"}]}}], "tls": [{"hosts": ["demo-sts.example.com"], "secretName": "nginx-sts-prod-cert"}]}}}
+    req = '{"data": {"apiVersion": "extensions/v1beta1", "kind": "Ingress", "metadata": {"annotations": {"certmanager.k8s.io/cluster-issuer": "letsencrypt-prod", "kubernetes.io/ingress.class": "nginx", "kubernetes.io/tls-acme": "true"}, "name": "nginx-sts", "namespace": "demo"}, "spec": {"rules": [{"host": "demo-sts.example.com", "http": {"paths": [{"backend": {"serviceName": "nginx-deploy", "servicePort": 80}, "path": "/deployment"}, {"backend": {"serviceName": "nginx-sts", "servicePort": 80}, "path": "/statefulset"}]}}], "tls": [{"hosts": ["demo-sts.example.com"], "secretName": "nginx-sts-prod-cert"}]}}}'
     context = {}
     handle(req)
