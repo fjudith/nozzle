@@ -29,7 +29,11 @@ This topic covers the build, release and deployment of the Nozzle functions insi
 The OpenFaaS Command Line Client `faas-cli` needs to be installed.
 Instructions to install it on your PC are documented [here](https://docs.openfaas.com/cli/install/)
 
-Run the following command to build the functions container images, push them to docker hub registry and publish the functions in the Kubernetes cluster via the Openfass Gateway.
+Run the following command to:
+
+* Deploy the `demo` environment includic 3 webserver replicas in the form of `StatefulSet`and `Deployment`
+* Deploy the appropriate RBAC for functions in the `openfaas-fn` namespace
+* Build the functions container images, push them to docker hub registry and publish the functions in the Kubernetes cluster via the Openfass Gateway.
 
 ```bash
 # Deploy appropriate RBAC and demo environment
