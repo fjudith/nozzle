@@ -124,7 +124,7 @@ async def publish(loop):
 
 
 
-def run(event):
+def handle(req):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
@@ -134,3 +134,8 @@ def run(event):
     finally:
         logger.info('closing event loop')
         loop.close()
+
+# Used only for local testing
+if __name__ == '__main__':
+    req = {}
+    handle(req)

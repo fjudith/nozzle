@@ -67,10 +67,10 @@ def _pass_conflicts():
             raise e
 
 
-def service(event):
+def service(req):
     # Client to list Services
     CoreV1Api = client.CoreV1Api()
-    namespace = event['metadata']['namespace']
+    namespace = req['metadata']['namespace']
 
     manifest = {
         "apiVersion": "v1",
@@ -107,11 +107,11 @@ def service(event):
         logger.info("Created Service name: %s Namespace: %s" % (api_response.metadata.name, api_response.metadata.namespace))
 
 
-def deployment(event):
+def deployment(req):
     # Client to Manage Web-Rescale deployment
     AppsV1Api = client.AppsV1Api()
     
-    namespace = event['metadata']['namespace']
+    namespace = req['metadata']['namespace']
     
     # Instantiate the Deployment object
     manifest = {
@@ -187,13 +187,13 @@ def deployment(event):
         logger.info("Created Deployment name: %s Namespace: %s" % (api_response.metadata.name, api_response.metadata.namespace))
 
 
-def configmap(event):
+def configmap(req):
     # Client to list Services
     CoreV1Api = client.CoreV1Api()
     
-    namespace = event['metadata']['namespace']
-    name      = event['metadata']['name']
-    host      = event['spec']['rules'][0]['host']
+    namespace = req['metadata']['namespace']
+    name      = req['metadata']['name']
+    host      = req['spec']['rules'][0]['host']
     
     index_html = ''.join(('<!doctype html>',
         '<html lang="fr">',
@@ -229,12 +229,12 @@ def configmap(event):
         logger.info("Created Configmap name: %s Namespace: %s" % (api_response.metadata.name, api_response.metadata.namespace))     
 
 
-def create(event):
-    configmap(event)
-    service(event)
-    deployment(event)
+def handle(req):
+    configmap(req)
+    service(req)
+    deployment(req)
 
 if __name__ == '__main__':
-    event = {"data": {"apiVersion": "extensions/v1beta1", "kind": "Ingress", "metadata": {"annotations": {"certmanager.k8s.io/cluster-issuer": "letsencrypt-prod", "kubernetes.io/ingress.class": "nginx", "kubernetes.io/tls-acme": "true"}, "name": "nginx-sts", "namespace": "demo"}, "spec": {"rules": [{"host": "demo-sts.example.com", "http": {"paths": [{"backend": {"serviceName": "nginx-deploy", "servicePort": 80}, "path": "/deployment"}, {"backend": {"serviceName": "nginx-sts", "servicePort": 80}, "path": "/statefulset"}]}}], "tls": [{"hosts": ["demo-sts.example.com"], "secretName": "nginx-sts-prod-cert"}]}}}
+    req = {"data": {"apiVersion": "extensions/v1beta1", "kind": "Ingress", "metadata": {"annotations": {"certmanager.k8s.io/cluster-issuer": "letsencrypt-prod", "kubernetes.io/ingress.class": "nginx", "kubernetes.io/tls-acme": "true"}, "name": "nginx-sts", "namespace": "demo"}, "spec": {"rules": [{"host": "demo-sts.example.com", "http": {"paths": [{"backend": {"serviceName": "nginx-deploy", "servicePort": 80}, "path": "/deployment"}, {"backend": {"serviceName": "nginx-sts", "servicePort": 80}, "path": "/statefulset"}]}}], "tls": [{"hosts": ["demo-sts.example.com"], "secretName": "nginx-sts-prod-cert"}]}}}
     context = {}
-    run(event)
+    handle(req)

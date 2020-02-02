@@ -9,7 +9,7 @@ functions:
     handler: ./publish-resources
     image: docker.io/fjudith/publish-resources:openfaas
     annotations:
-      com.openfaas.serviceaccount: replica-view
+      com.openfaas.serviceaccount: openfaas-replica-view
       topic: cron-function
       schedule: "*/1 * * * *"
     environment:
@@ -20,7 +20,8 @@ functions:
     handler: ./downscale-replicas
     image: docker.io/fjudith/downscale-replicas:openfaas
     annotations:
-      com.openfaas.serviceaccount: replica-manage
+      com.openfaas.serviceaccount: openfaas-replica-manage
+      topic: "k8s_replicas"
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
 
@@ -29,22 +30,25 @@ functions:
     handler: ./update-ingress
     image: docker.io/fjudith/update-ingress:openfaas
     annotations:
-      com.openfaas.serviceaccount: ingress-manage
+      com.openfaas.serviceaccount: openfaas-ingress-manage
+      topic: "k8s_replicas"
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
   
   web-rescaler:
     lang: python3
     handler: ./web-rescaler
-    annotations:
-      com.openfaas.serviceaccount: replica-manage # TODO: dedicated RBAC
     image: docker.io/fjudith/web-rescaler:openfaas
+    annotations:
+      com.openfaas.serviceaccount: openfaas-replica-manage # TODO: dedicated RBAC
+      topic: "k8s_ingresses"
+    
 
   rescale-replicas:
     lang: python3
     handler: ./rescale-replicas
     image: docker.io/fjudith/rescale-replicas:openfaas
     annotations:
-      com.openfaas.serviceaccount: replica-manage
+      com.openfaas.serviceaccount: openfaas-replica-manage
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222

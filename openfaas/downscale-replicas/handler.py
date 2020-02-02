@@ -48,37 +48,42 @@ else:
         logger.critical("Error creating Kubernetes configuration: %s", e)
         exit(2)
 
-def run(event):
-
+def handle(req):
+    payload = json.loads(req)
+    
     # Client to list namespaces
     CoreV1Api = client.CoreV1Api()
     
     # Client to list Deployments and StatefulSets
     AppsV1Api = client.AppsV1Api()
 
-    if event['kind'] == "deployment":
+    if payload['kind'] == "deployment":
         body={'spec':{'replicas': 0}}
         try:
-            api_response = AppsV1Api.patch_namespaced_deployment_scale(name=event['name'], namespace=event['namespace'], body=body, pretty=args.pretty)
+            api_response = AppsV1Api.patch_namespaced_deployment_scale(name=payload['name'], namespace=payload['namespace'], body=body, pretty=args.pretty)
             pprint(api_response)
         except ApiException as e:
             print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
-            print(event.keys())
-            print(type(event))
-            print(str(event))
+            print(payload.keys())
+            print(type(payload))
+            print(str(payload))
             
-    elif event['kind'] == "statefulset":
+    elif payload['kind'] == "statefulset":
         body={'spec':{'replicas': 1}}
         try:
-            api_response = AppsV1Api.patch_namespaced_stateful_set_scale(name=event['name'], namespace=event['namespace'], body=body, pretty=args.pretty)
+            api_response = AppsV1Api.patch_namespaced_stateful_set_scale(name=payload['name'], namespace=payload['namespace'], body=body, pretty=args.pretty)
             pprint(api_response)
         except ApiException as e:
             print("Exception when calling AppsV1Api->patch_namespaced_stateful_set_scale: %s\n" % e)
-            print(event.keys())
-            print(type(event))
-            print(str(event))
+            print(payload.keys())
+            print(type(payload))
+            print(str(payload))
     else:
         msg = "SKIPPING: Resource is not of kind Deployment or Statefulset"
         print(msg)
         return(msg)
-        
+
+# Used only for local testing
+if __name__ == '__main__':
+    req = '{"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}'
+    handle(req)

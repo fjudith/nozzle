@@ -55,7 +55,9 @@ else:
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
-def patch(event):
+def handle(req):
+    payload = json.loads(req)
+
     # Client to list Services
     CoreV1Api = client.CoreV1Api()
     
@@ -71,28 +73,29 @@ def patch(event):
 
     # Convert labels to key=value array of string (e.g. key1=value1,key2=value2) 
     list=[]
-    for key, value in event["labels"].items():
+    print(payload['labels'])
+    for key, value in payload["labels"].items():
         temp = key + "=" + value
         list.append(temp)
     label_selector = ','.join(list)
 
     # Search for service that use the Selector
     try:
-        logger.info("Searching for Service (svc) in Namespace: %s with Labels: %s" % (event['namespace'], label_selector))
+        logger.info("Searching for Service (svc) in Namespace: %s with Labels: %s" % (payload['namespace'], label_selector))
         
-        services = CoreV1Api.list_namespaced_service(namespace=event['namespace'], label_selector=label_selector, pretty=args.pretty)
+        services = CoreV1Api.list_namespaced_service(namespace=payload['namespace'], label_selector=label_selector, pretty=args.pretty)
     except ApiException as e:
         print("Exception when calling CoreV1Api->list_namespaced_service: %s\n" % e)
-        print(event.keys())
-        print(type(event))
-        print(str(event))
+        print(payload.keys())
+        print(type(payload))
+        print(str(payload))
 
     try:
         # Search for in Ingresses configured with the Service Name
         for service in services.items:
-            logger.info("Searching for Ingress (ing) in Namespace: %s with Bakend: %s" % (event['namespace'], service.metadata.name))
+            logger.info("Searching for Ingress (ing) in Namespace: %s with Bakend: %s" % (payload['namespace'], service.metadata.name))
             
-            ingresses = ExtensionsV1beta1Api.list_namespaced_ingress(namespace=event['namespace'], pretty=args.pretty)
+            ingresses = ExtensionsV1beta1Api.list_namespaced_ingress(namespace=payload['namespace'], pretty=args.pretty)
             #pprint(ingresses)
 
             for ingress in ingresses.items:
@@ -117,9 +120,9 @@ def patch(event):
                                 pprint(patch_ingress)
                             except ApiException as e:
                                 print("Exception when calling ExtensionsV1beta1Api->patch_namespaced_ingress: %s\n" % e)
-                                print(event.keys())
-                                print(type(event))
-                                print(str(event))
+                                print(payload.keys())
+                                print(type(payload))
+                                print(str(payload))
 
                         path_index += 1
                     rule_index +=1
@@ -127,9 +130,9 @@ def patch(event):
                 loop.run_until_complete(publish(json.loads(ingress.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]), loop))
     except ApiException as e:
         print("Exception when calling ExtensionsV1beta1Api->list_namespaced_ingress: %s\n" % e)
-        print(event.keys())
-        print(type(event))
-        print(str(event))
+        print(payload.keys())
+        print(type(payload))
+        print(str(payload))
 
 async def publish(ingress_resource, loop):
     # client publish to NATS
@@ -166,6 +169,5 @@ async def publish(ingress_resource, loop):
 
 # Used only for local testing
 if __name__ == '__main__':
-    event = {"data": {"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}}
-    context = {}
-    patch(event)
+    req = '{"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}'
+    handle(req)
