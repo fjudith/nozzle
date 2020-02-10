@@ -8,6 +8,8 @@ functions:
     lang: python3
     handler: ./publish-resources
     image: docker.io/fjudith/publish-resources:openfaas
+    constraints:
+     - "node.platform.os == linux"
     annotations:
       com.openfaas.serviceaccount: openfaas-replica-view
       topic: cron-function
@@ -19,6 +21,8 @@ functions:
     lang: python3
     handler: ./downscale-replicas
     image: docker.io/fjudith/downscale-replicas:openfaas
+    constraints:
+     - "node.platform.os == linux"
     annotations:
       com.openfaas.serviceaccount: openfaas-replica-manage
       topic: "k8s_replicas"
@@ -29,6 +33,8 @@ functions:
     lang: python3
     handler: ./update-ingress
     image: docker.io/fjudith/update-ingress:openfaas
+    constraints:
+     - "node.platform.os == linux"
     annotations:
       com.openfaas.serviceaccount: openfaas-ingress-manage
       topic: "k8s_replicas"
@@ -39,6 +45,8 @@ functions:
     lang: python3
     handler: ./web-rescaler
     image: docker.io/fjudith/web-rescaler:openfaas
+    constraints:
+     - "node.platform.os == linux"
     annotations:
       com.openfaas.serviceaccount: openfaas-deployment-manage
       topic: "k8s_ingresses"
@@ -48,7 +56,11 @@ functions:
     lang: python3
     handler: ./rescale-replicas
     image: docker.io/fjudith/rescale-replicas:openfaas
+    constraints:
+     - "node.platform.os == linux"
     annotations:
       com.openfaas.serviceaccount: openfaas-replica-manage
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
+    constraints:
+     - "node.platform.os == linux"

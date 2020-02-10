@@ -12,4 +12,4 @@ Serverless implementation based on Python3, Kubeless and NATS.
 
 ## Golang
 
-Native Kubernetes implementation based on a Custom Controller written and Go 1.13.x.
+Native Kubernetes implementation based on a Custom Controller written and Go `1.13.x`.
