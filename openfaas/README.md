@@ -8,40 +8,48 @@ Serverless platforms are orchestration tools to efficiently run the code when it
 ```plantuml
 @startuml
 
-entity "publish-replicas"
+actor "user"
+participant "publish-replicas"
 database "kubernetes"
 queue "nats"
-entity "downscale-replicas"
-entity "inject-ingress"
-entity "update-ingress"
+participant "downscale-replicas"
+participant "inject-rescaler"
+participant "update-ingress"
 queue "stan"
-actor "user"
+entity "rescaler"
 
-
-
-"publish-replicas" -> "kubernetes" : List namespaces labeled **nightly-shutdown=true**
+== Inventory ==
+"publish-replicas" -> "kubernetes" : List namespaces labeled \n **nightly-shutdown=true**
 "kubernetes" --> "publish-replicas" : Eligible workload replicas (deploy/sts)
 "publish-replicas" -> "nats": Publish to **k8s_replicas** topic
-|||
+
+== Downscale ==
 "downscale-replicas" -> "nats": Subscribe **k8s_replicas** topic
 "nats" --> "downscale-replicas": JSON-1
-"downscale-replicas" -> "kubernetes": Reduce replicas: **deploy = 0**, **sts = 1**
-|||
+"downscale-replicas" -> "kubernetes": Reduce replicas: \n**deploy = 0**, **sts = 1**
+
+== Redirect ==
 "update-ingress" -> "nats": Subscribe **k8s_replicas** topic
 "nats" --> "update-ingress": JSON-1
-"update-ingress" -> "stan": Publish matching selector ingress spec to topic **k8s_ingress** topic
+"update-ingress" -> "stan": Publish matched selector \n ingress spec to topic **k8s_ingress** topic
 "update-ingress" -> "kubernetes": Change ingress target
 |||
-"inject-rescaler" -> "nats": Subscribe "k8s_replicas" topic
+"inject-rescaler" -> "nats": Subscribe **k8s_replicas** topic
 "nats" -> "inject-rescaler": JSON-1
 "inject-rescaler" -> "kubernetes": Deploy on-demand replicas rescaler 
 "kubernetes" --> "rescaler": Run Web server
-|||
-"user" -> "rescaler": Request rescale
-|||
-"rescale-replicas" -> "stan": Subscribe "k8s_ingresses"
-"rescaler" -> "rescale-replicas": Request rescaling
 
+== User action ==
+"user" -> "rescaler": Request rescale
+
+== Rescale ==
+"rescale-replicas" -> "stan": Subscribe **k8s_ingresses**
+"rescaler" -> "rescale-replicas": Request rescaling
+"stan" --> "rescale-replicas": Select ingress
+"rescale-replicas" -> "kubernetes": Restore replicas
+"rescale-replicas" -> "kubernetes": Restore ingress
+"rescale-replicas" -> "kubernetes": Remove rescaler
+"kubernetes" --> "rescaler": Delete rescaler resources (deploy, svc)
 @enduml
 ```
 
