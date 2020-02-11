@@ -5,55 +5,8 @@ This document show you how to deploy Nozzle in a Kubernetes cluster running the 
 Serverless is a particular Kind of microservices architecture that splits services into ephemeral functions to enhance observability and cost efficiency.
 Serverless platforms are orchestration tools to efficiently run the code when it is required. To acheive this they support a set of trigger to react on events like HTTP requests, scheduled jobs, message queue publishing, etc.
 
-```plantuml
-@startuml
-
-actor "user"
-participant "publish-replicas"
-database "kubernetes"
-queue "nats"
-participant "downscale-replicas"
-participant "inject-rescaler"
-participant "update-ingress"
-queue "stan"
-entity "rescaler"
-
-== Inventory ==
-"publish-replicas" -> "kubernetes" : List namespaces labeled \n **nightly-shutdown=true**
-"kubernetes" --> "publish-replicas" : Eligible workload replicas (deploy/sts)
-"publish-replicas" -> "nats": Publish to **k8s_replicas** topic
-
-== Downscale ==
-"downscale-replicas" -> "nats": Subscribe **k8s_replicas** topic
-"nats" --> "downscale-replicas": JSON-1
-"downscale-replicas" -> "kubernetes": Reduce replicas: \n**deploy = 0**, **sts = 1**
-
-== Redirect ==
-"update-ingress" -> "nats": Subscribe **k8s_replicas** topic
-"nats" --> "update-ingress": JSON-1
-"update-ingress" -> "stan": Publish matched selector \n ingress spec to topic **k8s_ingress** topic
-"update-ingress" -> "kubernetes": Change ingress target
-|||
-"inject-rescaler" -> "nats": Subscribe **k8s_replicas** topic
-"nats" -> "inject-rescaler": JSON-1
-"inject-rescaler" -> "kubernetes": Deploy on-demand replicas rescaler 
-"kubernetes" --> "rescaler": Run Web server
-
-== User action ==
-"user" -> "rescaler": Request rescale
-
-== Rescale ==
-"rescale-replicas" -> "stan": Subscribe **k8s_ingresses**
-"rescaler" -> "rescale-replicas": Request rescaling
-"stan" --> "rescale-replicas": Select ingress
-"rescale-replicas" -> "kubernetes": Restore replicas
-"rescale-replicas" -> "kubernetes": Restore ingress
-"rescale-replicas" -> "kubernetes": Remove rescaler
-"kubernetes" --> "rescaler": Delete rescaler resources (deploy, svc)
-@enduml
-```
-
-* **JSON-1**: `{"namespace": str, "name": str, "kind": str, "selector": {dict}}`
+* **Replicas JSON**: `{"namespace": str, "name": str, "kind": str, "selector": { dict }}`
+* **Ingress JSON**: `{"namespace": str, "name": "Ingress", "hosts": { dict }}`
 
 
 ## Pre-requesits
