@@ -5,22 +5,26 @@ import argparse
 import json
 import logging
 import os
+import uuid
 from pprint import pprint
 
 from kubernetes import client, config, watch
 from kubernetes.client.rest import ApiException
 
 from nats.aio.client import Client as NATS
+from stan.aio.client import Client as STAN
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 parser = argparse.ArgumentParser()
 # Kubernetes related arguments
-parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
+parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) # "default=False" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
+parser.add_argument('-t', '--topic', help="NATS Streaming topic", default="k8s_ingresses")
 # parser.add_argument('--dry-run', help='Indicates that modifications should not be persisted. Valid values are: - All: all dry run stages will be processed (optional)')
-parser.add_argument('--temp-webserver', help='Pod service the replica restore page', default='reactivate')
 # NATS releated arguments
 parser.add_argument('-a', '--nats-address', help="address of nats cluster", default=os.environ.get('NATS_ADDRESS', None))
+parser.add_argument('-c', '--stan-cluster', help="STAN cluster name", default=os.environ.get('STAN_CLUSTER', None))
+
 parser.add_argument('--connect-timeout', help="NATS connect timeout (s)", type=int, default=10, dest='conn_timeout')
 parser.add_argument('--max-reconnect-attempts', help="number of times to attempt reconnect", type=int, default=5, dest='conn_attempts')
 parser.add_argument('--reconnect-time-wait', help="how long to wait between reconnect attempts", type=int, default=1, dest='conn_wait')
@@ -114,10 +118,9 @@ def handle(req):
                             ]
                             
                             try: 
-                                logger.info("Patch specifications: %s" %(json.loads(json.dumps(body))))
+                                logger.debug("Patch specifications: %s" %(json.loads(json.dumps(body))))
 
                                 patch_ingress = ExtensionsV1beta1Api.patch_namespaced_ingress(name=ingress.metadata.name, namespace=ingress.metadata.namespace, body=json.loads(json.dumps(body)), pretty=args.pretty)
-                                pprint(patch_ingress)
                             except ApiException as e:
                                 print("Exception when calling ExtensionsV1beta1Api->patch_namespaced_ingress: %s\n" % e)
                                 print(payload.keys())
@@ -135,37 +138,46 @@ def handle(req):
         print(str(payload))
 
 async def publish(ingress_resource, loop):
-    # client publish to NATS
+    # Use borrowed connection for NATS then mount NATS Streaming
+    # client on top.
     nc = NATS()
     
+    # Start session with NATS Streaming cluster.
+    sc = STAN()
+
     try:
         await nc.connect(args.nats_address, loop=loop,connect_timeout=args.conn_timeout, max_reconnect_attempts=args.conn_attempts, reconnect_time_wait=args.conn_wait)
+        await sc.connect(args.stan_cluster, "publish-ingress-" + str(uuid.uuid4()), nats=nc)
     except ErrNoServers as e:
         # Could not connect to any server in the cluster.
         print(e)
         return
 
-    async def message_handler(msg):
-        subject = msg.subject
-        reply = msg.reply
-        data = msg.data.decode()
-        print ("Received a message on '{subject} {reply}': {data}".format(
-            subject=subject, reply=reply, data=data
-        ))
+    total_messages = 0
+    future = asyncio.Future(loop=loop)
+    async def cb(msg):
+        nonlocal future
+        nonlocal total_messages
+        print("Received a message (seq={}): {}".format(msg.seq, msg.data))
+        total_messages += 1
+        if total_messages >= 2:
+            future.set_result(None)
             
-    # Simple publisher and async subscriber via coroutine.
-    sid = await nc.subscribe("k8s_ingresses", cb=message_handler)
+    # Subscribe to get all messages since beginning.
+    sub = await sc.subscribe(args.topic, start_at='first', cb=cb)
+    await asyncio.wait_for(future, 1, loop=loop)
+    
+    msg = {"namespace": ingress_resource["metadata"]["namespace"], "name": ingress_resource["metadata"]["name"], "rules": ingress_resource["spec"]["rules"] }
 
     try:
-        await nc.publish("k8s_ingresses", json.dumps(ingress_resource).encode('utf-8'))
-        await nc.flush(0.500)
+        # STAN publish
+        await sc.publish(args.topic, json.dumps(msg).encode('utf-8'), ack_handler=True)
     except ErrConnectionClosed as e:
         print("Connection closed prematurely.")
     except ErrTimeout as e:
-        print("Timeout occured when publishing msg i={}: {}".format(
-            deploy, e))
-    
-    await nc.drain()
+        print("Timeout occured when publishing msg i={}: {}".format(deploy, e))
+
+    await sc.close()
 
 # Used only for local testing
 if __name__ == '__main__':
