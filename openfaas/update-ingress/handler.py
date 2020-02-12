@@ -17,7 +17,7 @@ from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 parser = argparse.ArgumentParser()
 # Kubernetes related arguments
-parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=False) # "default=False" if running locally
+parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) # "default=False" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 parser.add_argument('-t', '--topic', help="NATS Streaming topic", default="k8s_ingresses")
 # parser.add_argument('--dry-run', help='Indicates that modifications should not be persisted. Valid values are: - All: all dry run stages will be processed (optional)')
@@ -111,7 +111,7 @@ def handle(req):
                     for path in rule.http.paths:
                         if path.backend.service_name == service.metadata.name:
                             logger.info("Found Service name: %s Port: %s in Ingress: %s" % (path.backend.service_name, path.backend.service_port, ingress.metadata.name))
-                            logger.info("Patching Ingress name:%s with Service name: %s with Port: %s" % (ingress.metadata.name, path.backend.service_name, path.backend.service_port))
+                            logger.info("Patching Ingress name: %s containing service Name: %s with Port: %s" % (ingress.metadata.name, path.backend.service_name, path.backend.service_port))
                             
                             body = [
                                 {"op": "replace", "path": "/spec/rules/" + str(rule_index) + "/http/paths/" + str(path_index) + "/backend/serviceName", "value": "rescaler"},
@@ -174,5 +174,6 @@ async def publish(ingress_resource, loop):
 
 # Used only for local testing
 if __name__ == '__main__':
-    req = '{"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}'
+    req = '{"namespace": "sock-shop", "name": "front-end", "kind": "deployment", "replicas": 1, "labels": {"app": "front-end"}}'
+    # req = '{"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}'
     handle(req)
