@@ -17,13 +17,12 @@ from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 parser = argparse.ArgumentParser()
 # Kubernetes related arguments
-parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) # "default=False" if running locally
+parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=False) # "default=False" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 parser.add_argument('-t', '--topic', help="NATS Streaming topic", default="k8s_ingresses")
 # parser.add_argument('--dry-run', help='Indicates that modifications should not be persisted. Valid values are: - All: all dry run stages will be processed (optional)')
 # NATS releated arguments
 parser.add_argument('-a', '--nats-address', help="address of nats cluster", default=os.environ.get('NATS_ADDRESS', None))
-parser.add_argument('-c', '--stan-cluster', help="STAN cluster name", default=os.environ.get('STAN_CLUSTER', None))
 
 parser.add_argument('--connect-timeout', help="NATS connect timeout (s)", type=int, default=10, dest='conn_timeout')
 parser.add_argument('--max-reconnect-attempts', help="number of times to attempt reconnect", type=int, default=5, dest='conn_attempts')
@@ -76,12 +75,14 @@ def handle(req):
     servicePort = '[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/servicePort", "value": 80}]'
 
     # Convert labels to key=value array of string (e.g. key1=value1,key2=value2) 
-    list=[]
+    array=[]
     print(payload['labels'])
+
     for key, value in payload["labels"].items():
         temp = key + "=" + value
-        list.append(temp)
-    label_selector = ','.join(list)
+        array.append(temp)
+    label_selector = ','.join(array)
+    pprint(label_selector)
 
     # Search for service that use the Selector
     try:
@@ -113,7 +114,7 @@ def handle(req):
                             logger.info("Patching Ingress name:%s with Service name: %s with Port: %s" % (ingress.metadata.name, path.backend.service_name, path.backend.service_port))
                             
                             body = [
-                                {"op": "replace", "path": "/spec/rules/" + str(rule_index) + "/http/paths/" + str(path_index) + "/backend/serviceName", "value": "web-reactivate"},
+                                {"op": "replace", "path": "/spec/rules/" + str(rule_index) + "/http/paths/" + str(path_index) + "/backend/serviceName", "value": "rescaler"},
                                 {"op": "replace", "path": "/spec/rules/" + str(rule_index) + "/http/paths/" + str(path_index) + "/backend/servicePort", "value": 3000}
                             ]
                             
@@ -126,11 +127,12 @@ def handle(req):
                                 print(payload.keys())
                                 print(type(payload))
                                 print(str(payload))
-
+                            finally:
+                                loop.run_until_complete(publish(json.loads(ingress.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]), loop))
                         path_index += 1
                     rule_index +=1
                  
-                loop.run_until_complete(publish(json.loads(ingress.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]), loop))
+                
     except ApiException as e:
         print("Exception when calling ExtensionsV1beta1Api->list_namespaced_ingress: %s\n" % e)
         print(payload.keys())
@@ -138,46 +140,37 @@ def handle(req):
         print(str(payload))
 
 async def publish(ingress_resource, loop):
-    # Use borrowed connection for NATS then mount NATS Streaming
-    # client on top.
+    # client publish to NATS
     nc = NATS()
     
-    # Start session with NATS Streaming cluster.
-    sc = STAN()
-
     try:
         await nc.connect(args.nats_address, loop=loop,connect_timeout=args.conn_timeout, max_reconnect_attempts=args.conn_attempts, reconnect_time_wait=args.conn_wait)
-        await sc.connect(args.stan_cluster, "publish-ingress-" + str(uuid.uuid4()), nats=nc)
     except ErrNoServers as e:
         # Could not connect to any server in the cluster.
         print(e)
         return
 
-    total_messages = 0
-    future = asyncio.Future(loop=loop)
-    async def cb(msg):
-        nonlocal future
-        nonlocal total_messages
-        print("Received a message (seq={}): {}".format(msg.seq, msg.data))
-        total_messages += 1
-        if total_messages >= 2:
-            future.set_result(None)
+    async def message_handler(msg):
+        subject = msg.subject
+        reply = msg.reply
+        data = msg.data.decode()
+        print ("Received a message on '{subject} {reply}': {data}".format(
+            subject=subject, reply=reply, data=data
+        ))
             
-    # Subscribe to get all messages since beginning.
-    sub = await sc.subscribe(args.topic, start_at='first', cb=cb)
-    await asyncio.wait_for(future, 1, loop=loop)
-    
-    msg = {"namespace": ingress_resource["metadata"]["namespace"], "name": ingress_resource["metadata"]["name"], "rules": ingress_resource["spec"]["rules"] }
+    # Simple publisher and async subscriber via coroutine.
+    sid = await nc.subscribe(args.topic, cb=message_handler)
 
     try:
-        # STAN publish
-        await sc.publish(args.topic, json.dumps(msg).encode('utf-8'), ack_handler=True)
+        await nc.publish(args.topic, json.dumps(ingress_resource).encode('utf-8'))
+        await nc.flush(0.500)
     except ErrConnectionClosed as e:
         print("Connection closed prematurely.")
     except ErrTimeout as e:
-        print("Timeout occured when publishing msg i={}: {}".format(deploy, e))
-
-    await sc.close()
+        print("Timeout occured when publishing msg i={}: {}".format(
+            deploy, e))
+    
+    await nc.drain()
 
 # Used only for local testing
 if __name__ == '__main__':
