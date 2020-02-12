@@ -17,7 +17,7 @@ from kubernetes.client.rest import ApiException
 
 parser = argparse.ArgumentParser()
 # Kubernetes related arguments
-parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
+parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) # ", default=False" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # parser.add_argument('--dry-run', help='Indicates that modifications should not be persisted. Valid values are: - All: all dry run stages will be processed (optional)')
 parser.add_argument('--temp-webserver', help='Pod service the replica restore page', default='reactivate')
@@ -169,7 +169,7 @@ def deployment(req):
                     "volumes": [
                         {
                         "name": "www",
-                        "configMap": {"name": "web-rescaler-config", "items": [{"key": "index.html", "path": "index.html"}]}
+                        "configMap": {"name": "web-rescaler", "items": [{"key": "index.html", "path": "index.html"}]}
                         },
                     ],
                     "dnsPolicy": "ClusterFirst",
@@ -219,7 +219,7 @@ def configmap(req):
             "annotations": {"app": "web-rescaler"},
             "deletion_grace_period_seconds": 30,
             "labels": {"app": "web-rescaler"},
-            "name": "web-rescaler-config",
+            "name": "web-rescaler",
         },
         "data": {"index.html": index_html},
     }
@@ -236,6 +236,6 @@ def handle(req):
     deployment(payload)
 
 if __name__ == '__main__':
-    req = '{"data": {"apiVersion": "extensions/v1beta1", "kind": "Ingress", "metadata": {"annotations": {"certmanager.k8s.io/cluster-issuer": "letsencrypt-prod", "kubernetes.io/ingress.class": "nginx", "kubernetes.io/tls-acme": "true"}, "name": "nginx-sts", "namespace": "demo"}, "spec": {"rules": [{"host": "demo-sts.example.com", "http": {"paths": [{"backend": {"serviceName": "nginx-deploy", "servicePort": 80}, "path": "/deployment"}, {"backend": {"serviceName": "nginx-sts", "servicePort": 80}, "path": "/statefulset"}]}}], "tls": [{"hosts": ["demo-sts.example.com"], "secretName": "nginx-sts-prod-cert"}]}}}'
+    req = '{"apiVersion": "extensions/v1beta1", "kind": "Ingress", "metadata": {"annotations": {"certmanager.k8s.io/cluster-issuer": "letsencrypt-prod", "kubernetes.io/ingress.class": "nginx", "kubernetes.io/tls-acme": "true"}, "name": "nginx-sts", "namespace": "demo"}, "spec": {"rules": [{"host": "demo-sts.example.com", "http": {"paths": [{"backend": {"serviceName": "nginx-deploy", "servicePort": 80}, "path": "/deployment"}, {"backend": {"serviceName": "nginx-sts", "servicePort": 80}, "path": "/statefulset"}]}}], "tls": [{"hosts": ["demo-sts.example.com"], "secretName": "nginx-sts-prod-cert"}]}}'
     context = {}
     handle(req)
