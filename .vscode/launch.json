@@ -5,7 +5,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "env": {"NATS_ADDRESS": "localhost:4222", "STAN_CLUSTER": "stan-cluster"},
+            "env": {"STAN_CLUSTER": "stan-cluster"},
+            "args": ["--nats-address=nats://localhost:4222"],
             "name": "Python : Fichier actuel",
             "type": "python",
             "request": "launch",
