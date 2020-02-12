@@ -41,16 +41,15 @@ functions:
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
   
-  web-rescaler:
+  deploy-rescaler:
     lang: python3
-    handler: ./web-rescaler
-    image: docker.io/fjudith/web-rescaler:openfaas
+    handler: ./deploy-rescaler
+    image: docker.io/fjudith/deploy-rescaler:openfaas
     constraints:
      - "node.platform.os == linux"
     annotations:
       com.openfaas.serviceaccount: openfaas-deployment-manage
       topic: "k8s_ingresses"
-    
 
   rescale-replicas:
     lang: python3
