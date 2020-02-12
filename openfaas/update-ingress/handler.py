@@ -143,6 +143,8 @@ async def publish(ingress_resource, loop):
     # client publish to NATS
     nc = NATS()
     
+    msg = {"namespace": ingress_resource["metadata"]["namespace"], "name": ingress_resource["metadata"]["name"], "rules": ingress_resource["spec"]["rules"] }
+
     try:
         await nc.connect(args.nats_address, loop=loop,connect_timeout=args.conn_timeout, max_reconnect_attempts=args.conn_attempts, reconnect_time_wait=args.conn_wait)
     except ErrNoServers as e:
@@ -162,7 +164,7 @@ async def publish(ingress_resource, loop):
     sid = await nc.subscribe(args.topic, cb=message_handler)
 
     try:
-        await nc.publish(args.topic, json.dumps(ingress_resource).encode('utf-8'))
+        await nc.publish(args.topic, json.dumps(msg).encode('utf-8'))
         await nc.flush(0.500)
     except ErrConnectionClosed as e:
         print("Connection closed prematurely.")
