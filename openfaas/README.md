@@ -5,9 +5,6 @@ This document show you how to deploy Nozzle in a Kubernetes cluster running the 
 Serverless is a particular Kind of microservices architecture that splits services into ephemeral functions to enhance observability and cost efficiency.
 Serverless platforms are orchestration tools to efficiently run the code when it is required. To acheive this they support a set of trigger to react on events like HTTP requests, scheduled jobs, message queue publishing, etc.
 
-* **Replicas JSON**: `{"namespace": str, "name": str, "kind": str, "selector": { dict }}`
-* **Ingress JSON**: `{"namespace": str, "name": "Ingress", "hosts": { dict }}`
-
 
 ## Pre-requesits
 
