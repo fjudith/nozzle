@@ -17,7 +17,7 @@ from kubernetes.client.rest import ApiException
 
 parser = argparse.ArgumentParser()
 # Kubernetes related arguments
-parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) # ", default=False" if running locally
+parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) # "default=False" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # parser.add_argument('--dry-run', help='Indicates that modifications should not be persisted. Valid values are: - All: all dry run stages will be processed (optional)')
 parser.add_argument('--temp-webserver', help='Pod service the replica restore page', default='reactivate')
@@ -77,24 +77,24 @@ def service(req):
         "kind": "Service",
         "metadata": {
             "labels": {
-                "app": "web-rescaler",
+                "app": "rescaler",
                 "tier": "web"
             },
-            "name": "web-rescaler",
-            "namespace": "demo"
+            "name": "rescaler",
+            "namespace": namespace
         },
         "spec": {
             "clusterIP": "None",
             "ports": [
                 {
                     "name": "web",
-                    "port": 80,
+                    "port": 3000,
                     "protocol": "TCP",
                     "targetPort": 80
                 }
             ],
             "selector": {
-                "app": "web-rescaler",
+                "app": "rescaler",
                 "tier": "web"
             },
             "sessionAffinity": "None",
@@ -118,17 +118,18 @@ def deployment(req):
         "apiVersion": "apps/v1",
         "kind": "Deployment",
         "metadata": {
-            "annotations": {"app": "web-rescaler"},
+            "annotations": {"app": "rescaler"},
             "deletionGracePeriodSeconds": 30,
-            "labels": {"app": "web-rescaler", "tier": "web"},
-            "name": "web-rescaler",
+            "labels": {"app": "rescaler", "tier": "web"},
+            "name": "rescaler",
+            "namespace": namespace
         },
         "spec": {
             "progressDeadlineSeconds": 600,
             "replicas": 1,
             "revision_history_limit": 10,
             "selector": {
-                "matchLabels": {"app": "web-rescaler", "tier": "web"}
+                "matchLabels": {"app": "rescaler", "tier": "web"}
             },
             "strategy": {
                 "rollingUpdate": {
@@ -139,7 +140,7 @@ def deployment(req):
             },
             "template": {
                 "metadata": {
-                    "labels": {"app": "web-rescaler", "tier": "web"}
+                    "labels": {"app": "rescaler", "tier": "web"}
                 },
                 "spec": {
                     "containers": [
@@ -169,7 +170,7 @@ def deployment(req):
                     "volumes": [
                         {
                         "name": "www",
-                        "configMap": {"name": "web-rescaler", "items": [{"key": "index.html", "path": "index.html"}]}
+                        "configMap": {"name": "rescaler", "items": [{"key": "index.html", "path": "index.html"}]}
                         },
                     ],
                     "dnsPolicy": "ClusterFirst",
@@ -197,15 +198,17 @@ def configmap(req):
     
     index_html = ''.join(('<!doctype html>',
         '<html lang="fr">',
-        f'<head><title>web-rescaler: {host}</title></head>',
+        f'<head><title>rescaler: {host}</title></head>',
         '<body>',
         f'<h1>{host}</h1>',
-        '<form>',
-        f'<b>Namespace</b>: <input type="text" name="namespace" value="{namespace}">',
-        f'<b>Name</b>: <input type="text" name="name" value="{name}">',
+        '<form action="http://gateway.openfaas.com/function/rescale-replicas" method="post">',
+        '<label for="namespace">Namespace</label>',
+        '<input type="text" id="namespace" name="namespace" value="{namespace}">',
+        '<label for="name">Ingress name</label>',
+        '<input type="text" id="name" name="name" value="{name}">',
         '</p>',
         'Click the <b>Rescale</b> button to restore <code>Deployment</code> and/or <code>Statefulset</code> replicas</p>',
-        '<input class="rescale" type="button" value="Rescale" />',
+        '<input type="submit" value="Rescale" />',
         '</form>',
         '</body>',
         '</html>'
@@ -216,10 +219,11 @@ def configmap(req):
         "apiVersion": "v1",
         "kind": "ConfigMap",
         "metadata": {
-            "annotations": {"app": "web-rescaler"},
+            "annotations": {"app": "rescaler"},
             "deletion_grace_period_seconds": 30,
-            "labels": {"app": "web-rescaler"},
-            "name": "web-rescaler",
+            "labels": {"app": "rescaler"},
+            "name": "rescaler",
+            "namespace": namespace
         },
         "data": {"index.html": index_html},
     }
