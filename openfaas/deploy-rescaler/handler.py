@@ -70,7 +70,7 @@ def _pass_conflicts():
 def service(req):
     # Client to list Services
     CoreV1Api = client.CoreV1Api()
-    namespace = req['metadata']['namespace']
+    namespace = req['namespace']
 
     manifest = {
         "apiVersion": "v1",
@@ -111,7 +111,7 @@ def deployment(req):
     # Client to Manage Web-Rescale deployment
     AppsV1Api = client.AppsV1Api()
     
-    namespace = req['metadata']['namespace']
+    namespace = req['namespace']
     
     # Instantiate the Deployment object
     manifest = {
@@ -192,9 +192,9 @@ def configmap(req):
     # Client to list Services
     CoreV1Api = client.CoreV1Api()
     
-    namespace = req['metadata']['namespace']
-    name      = req['metadata']['name']
-    host      = req['spec']['rules'][0]['host']
+    namespace = req['namespace']
+    name      = req['name']
+    host      = req['rules'][0]['host']
     
     index_html = ''.join(('<!doctype html>',
         '<html lang="fr">',
@@ -240,6 +240,6 @@ def handle(req):
     deployment(payload)
 
 if __name__ == '__main__':
-    req = '{"apiVersion": "extensions/v1beta1", "kind": "Ingress", "metadata": {"annotations": {"certmanager.k8s.io/cluster-issuer": "letsencrypt-prod", "kubernetes.io/ingress.class": "nginx", "kubernetes.io/tls-acme": "true"}, "name": "nginx-sts", "namespace": "demo"}, "spec": {"rules": [{"host": "demo-sts.example.com", "http": {"paths": [{"backend": {"serviceName": "nginx-deploy", "servicePort": 80}, "path": "/deployment"}, {"backend": {"serviceName": "nginx-sts", "servicePort": 80}, "path": "/statefulset"}]}}], "tls": [{"hosts": ["demo-sts.example.com"], "secretName": "nginx-sts-prod-cert"}]}}'
+    req = '{"namespace": "sock-shop", "name": "frontend", "rules": [{"host": "shop.weavelab.io", "http": {"paths": [{"backend": {"serviceName": "frontend", "servicePort": 80}, "path": "/"}]}}]}'
     context = {}
     handle(req)
