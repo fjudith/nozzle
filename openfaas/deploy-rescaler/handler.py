@@ -201,7 +201,7 @@ def configmap(req):
         f'<head><title>rescaler: {host}</title></head>',
         '<body>',
         f'<h1>{host}</h1>',
-        '<form action="http://gateway.openfaas.com/function/rescale-replicas" method="post">',
+        '<form action="http://gateway.openfaas:8080/function/rescale-replicas.openfaas-fn" method="post">',
         '<label for="namespace">Namespace</label>',
         '<input type="text" id="namespace" name="namespace" value="{namespace}">',
         '<label for="name">Ingress name</label>',

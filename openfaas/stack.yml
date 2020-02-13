@@ -17,6 +17,7 @@ functions:
       # schedule: "0 * * * *"
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
+      EXCLUDE_DEPLOYMENT: rescaler
 
   downscale-replicas:
     lang: python3
