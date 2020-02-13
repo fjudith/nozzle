@@ -48,3 +48,7 @@ kubectl apply -f manifests/
 
 faas-cli up stack.yml -o dev
 ```
+
+## Reference
+
+* <https://www.w3schools.com/tags/att_form_method.asp>
