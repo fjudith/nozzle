@@ -5,8 +5,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "env": {"STAN_CLUSTER": "stan-cluster"},
-            "args": ["--nats-address=nats://localhost:4222"],
+            "env": {"NATS_ADDRESS": "nats://localhost:4222","STAN_CLUSTER": "stan-cluster","RESCALER_NAME": "rescaler"},
+            // "args": ["--nats-address=nats://localhost:4222"],
             "name": "Python : Fichier actuel",
             "type": "python",
             "request": "launch",

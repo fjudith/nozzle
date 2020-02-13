@@ -12,7 +12,7 @@ from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-x', '--exclude', help="address of nats cluster", default=os.environ.get('EXCLUDE_DEPLOYMENT', None))
+parser.add_argument('-x', '--exclude', help="address of nats cluster", default=os.environ.get('RESCALER_NAME', None))
 
 parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
 parser.add_argument('-l', '--selector', help="Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)", default='nightly-shutdown=true')

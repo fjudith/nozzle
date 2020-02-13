@@ -13,11 +13,11 @@ functions:
     annotations:
       com.openfaas.serviceaccount: openfaas-replica-view
       topic: cron-function
-      schedule: "*/1 * * * *"
+      schedule: "*/5 * * * *"
       # schedule: "0 * * * *"
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
-      EXCLUDE_DEPLOYMENT: rescaler
+      RESCALER_NAME: rescaler
 
   downscale-replicas:
     lang: python3
