@@ -203,9 +203,9 @@ def configmap(req):
         f'<h1>{host}</h1>',
         '<form action="http://gateway.openfaas:8080/function/rescale-replicas.openfaas-fn" method="post">',
         '<label for="namespace">Namespace</label>',
-        '<input type="text" id="namespace" name="namespace" value="{namespace}">',
+        f'<input type="text" id="namespace" name="namespace" value="{namespace}">',
         '<label for="name">Ingress name</label>',
-        '<input type="text" id="name" name="name" value="{name}">',
+        f'<input type="text" id="name" name="name" value="{name}">',
         '</p>',
         'Click the <b>Rescale</b> button to restore <code>Deployment</code> and/or <code>Statefulset</code> replicas</p>',
         '<input type="submit" value="Rescale" />',
@@ -241,5 +241,4 @@ def handle(req):
 
 if __name__ == '__main__':
     req = '{"namespace": "sock-shop", "name": "frontend", "rules": [{"host": "shop.weavelab.io", "http": {"paths": [{"backend": {"serviceName": "frontend", "servicePort": 80}, "path": "/"}]}}]}'
-    context = {}
     handle(req)
