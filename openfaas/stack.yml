@@ -60,8 +60,8 @@ functions:
     constraints:
      - "node.platform.os == linux"
     annotations:
-      com.openfaas.serviceaccount: openfaas-replica-manage
+      com.openfaas.serviceaccount: openfaas-rescale-manage
     environment:
-      NATS_ADDRESS: nats://nats-cluster.nats-io:4222
+      RESCALER_NAME: "rescaler"
     constraints:
      - "node.platform.os == linux"
