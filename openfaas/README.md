@@ -89,7 +89,8 @@ http POST http://localhost:8080/function/update-ingress namespace="demo" name="n
 http POST http://localhost:8080/function/update-ingress namespace="demo" name="nginx-sts"
 ```
 
-
 ## Reference
 
 * <https://www.w3schools.com/tags/att_form_method.asp>
+* <https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS>
+* <https://developer.mozilla.org/en-US/docs/Learn/Forms/Sending_forms_through_JavaScript>
