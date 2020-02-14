@@ -49,6 +49,47 @@ kubectl apply -f manifests/
 faas-cli up stack.yml -o dev
 ```
 
+## Test
+
+The following test scripts are leveraging [httpie](httpie.org).
+
+Expose the OpenFaaS gateway
+
+```bash
+kubectl -n openfaas port-forward svc/gateway 8080:8080
+```
+
+### Publish resources
+
+```bash
+http POST http://localhost:8080/function/publish-replica.openfaas-fn
+```
+
+### Downscale replicas
+
+```bash
+http POST http://localhost:8080/function/downscale-replicas namespace="demo" name="web" kind="statefulset" replicas="3" labels='{"app": "nginx", "type": "statefulset"}'
+```
+
+### Update ingress
+
+```bash
+http POST http://localhost:8080/function/update-ingress namespace="demo" name="web" kind="statefulset" replicas="3" labels='{"app": "nginx", "type": "statefulset"}'
+```
+
+### Deploy rescaler
+
+```bash
+http POST http://localhost:8080/function/update-ingress namespace="demo" name="nginx-sts" rules='[{"host": "demo-sts.example.com", "http": {"paths": [{"backend": {"serviceName": "frontend", "servicePort": 80}, "path": "/"}]}}]'
+```
+
+### Rescale resources
+
+```bash
+http POST http://localhost:8080/function/update-ingress namespace="demo" name="nginx-sts"
+```
+
+
 ## Reference
 
 * <https://www.w3schools.com/tags/att_form_method.asp>
