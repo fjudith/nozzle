@@ -178,9 +178,6 @@ def handle(req):
     restoreIngress(payload)
     removeRescaler(payload)
 
-
-
-
 # Used only for local testing
 if __name__ == '__main__':
     req = '{"namespace": "sock-shop", "ingress": "front-end"}'

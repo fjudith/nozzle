@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) # "default=False" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # parser.add_argument('--dry-run', help='Indicates that modifications should not be persisted. Valid values are: - All: all dry run stages will be processed (optional)')
-parser.add_argument('--temp-webserver', help='Pod service the replica restore page', default='reactivate')
+
 # NATS releated arguments
 parser.add_argument('-a', '--nats-address', help="address of nats cluster", default=os.environ.get('NATS_ADDRESS', None))
 parser.add_argument('--connect-timeout', help="NATS connect timeout (s)", type=int, default=10, dest='conn_timeout')
@@ -163,11 +163,6 @@ def deployment(req):
                                     "subPath": "index.html"
                                 },
                                 {
-                                    "name": "nginx",
-                                    "mountPath": "/etc/nginx/nginx.conf",
-                                    "subPath": "nginx.conf"
-                                },
-                                {
                                     "name": "default",
                                     "mountPath": "/etc/nginx/conf.d/default.conf",
                                     "subPath": "default.conf"
@@ -181,10 +176,6 @@ def deployment(req):
                         {
                         "name": "www",
                         "configMap": {"name": "rescaler", "items": [{"key": "index.html", "path": "index.html"}]}
-                        },
-                        {
-                        "name": "nginx",
-                        "configMap": {"name": "rescaler", "items": [{"key": "nginx.conf", "path": "nginx.conf"}]}
                         },
                         {
                         "name": "default",
@@ -218,6 +209,19 @@ def configmap(req):
         '<html lang="fr">\n',
         '<head>\n',
         '<meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1" />\n',
+        f'<head><title>rescaler: {host}</title></head>\n',
+        '<body>\n',
+        f'<h1>{host}</h1>\n',
+        '<form id="rescaler" >\n',
+        '<label for="namespace">Namespace</label>\n',
+        f'<input id="namespace" name="namespace" value="{namespace}">\n',
+        '<label for="name">Ingress name</label>\n',
+        f'<input id="name" name="ingress" value="{name}">\n',
+        '</p>\n',
+        'Click the <b>Rescale</b> button to restore <code>Deployment</code> and/or <code>Statefulset</code> replicas</p>\n',
+        '<input type="submit" value="Rescale" />\n',
+        '</form>\n',
+        '</body>\n',
         '<script>\n',
         '"use strict";\n',
         'window.addEventListener( "load", function () {\n',
@@ -242,12 +246,20 @@ def configmap(req):
         '    // Set up our request\n',
         '    XHR.open( "POST", path );\n',
         '\n',
+        '    XHR.setRequestHeader("Content-Type", "application/json;charset=UTF-8");\n',
+        '    var json = {};\n',
+        '    for (const [key, value]  of FD.entries()) {\n',
+        '           json[key] = value;\n',
+        '    }\n',
+        '    var json = JSON.stringify(json);\n',
+        '    console.info(json);\n',
+        '\n',
         '    // The data sent is what the user provided in the form\n',
-        '    XHR.send( FD );\n',
+        '    XHR.send( json );\n',
         '}\n',
         '\n',
         '// Access the form element...\n',
-        'let form = document.getElementById( "rescaler" );\n',
+        'var form = document.getElementById( "rescaler" );\n',
         '\n',
         '// ...and take over its submit event.\n',
         'form.addEventListener( "submit", function ( event ) {\n',
@@ -257,46 +269,7 @@ def configmap(req):
         '} );\n',
         '} );\n',
         '</script>\n',
-        f'<head><title>rescaler: {host}</title></head>\n',
-        '<body>\n',
-        f'<h1>{host}</h1>\n',
-        '<form id="rescaler" >\n',
-        '<label for="namespace">Namespace</label>\n',
-        f'<input type="text" id="namespace" name="namespace" value="{namespace}">\n',
-        '<label for="name">Ingress name</label>\n',
-        f'<input type="text" id="name" name="name" value="{name}">\n',
-        '</p>\n',
-        'Click the <b>Rescale</b> button to restore <code>Deployment</code> and/or <code>Statefulset</code> replicas</p>\n',
-        '<input type="submit" value="Rescale" />\n',
-        '</form>\n',
-        '</body>\n',
         '</html>'
-    ))
-    
-    nginx_config = ''.join(('',
-        'user               nginx;\n',
-        'worker_processes   auto;\n',
-        'error_log          /var/log/nginx/error.log warn;\n',
-        'pid                /var/run/nginx.pid;\n',
-        '\n',
-        'events {\n',
-        '   worker_connections  1024;\n',
-        '}\n',
-        '\n',
-        'http {\n',
-        '   resolver 127.0.0.1;\n',
-        '   include       /etc/nginx/mime.types;\n',
-        '   default_type  application/octet-stream;\n',
-        '   log_format  main  \'$remote_addr - $remote_user [$time_local] "$request" \'\n',
-        '                     \'$status $body_bytes_sent "$http_referer" \'\n',
-        '                     \'"$http_user_agent" "$http_x_forwarded_for"\'\n',
-        '\n',
-        '   access_log  /var/log/nginx/access.log  main;\n',
-        '   sendfile        on;\n',
-        '   keepalive_timeout  65;\n',
-        '   include /etc/nginx/conf.d/*.conf;\n',
-        '}\n',
-        '\n'
     ))
 
     default_config = ''.join(('',
@@ -305,6 +278,7 @@ def configmap(req):
         '   charset UTF-8;\n',
         '   listen 80;\n',
         '   server_name  localhost;\n',
+        '   resolver kube-dns.kube-system valid=10s;\n',
         '\n',
         '   location / {\n',
         '       root /usr/share/nginx/html;\n',
@@ -314,7 +288,8 @@ def configmap(req):
         '       proxy_set_header        X-Real-IP $remote_addr;\n',
         '       proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;\n',
         '       proxy_set_header        X-NginX-Proxy true;\n',
-        '       proxy_pass              http://gateway.openfaas:8080/$request_uri;\n',
+        '       proxy_pass              http://gateway.openfaas.svc.cluster.local:8080;\n',
+        '       proxy_http_version 1.1;\n',
         '       proxy_ssl_session_reuse off;\n',
         '       proxy_set_header        Host $http_host;\n',
         '       proxy_redirect          off;\n',
@@ -342,7 +317,7 @@ def configmap(req):
             "name": "rescaler",
             "namespace": namespace
         },
-        "data": {"index.html": index_html, "nginx.conf": nginx_config, "default.conf": default_config},
+        "data": {"index.html": index_html, "default.conf": default_config},
     }
 
 
