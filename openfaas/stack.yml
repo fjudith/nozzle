@@ -52,6 +52,8 @@ functions:
     annotations:
       com.openfaas.serviceaccount: openfaas-deployment-manage
       topic: "k8s_ingresses"
+    environment:
+      OPENFAAS_GATEWAY_URL: http://gateway.openfaas.svc.cluster.local:8080
 
   rescale-replicas:
     lang: python3
