@@ -5,13 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "env": {"NATS_ADDRESS": "nats://localhost:4222","STAN_CLUSTER": "stan-cluster","RESCALER_NAME": "rescaler"},
+            "env": {
+                "NATS_ADDRESS": "nats://localhost:4222",
+                "STAN_CLUSTER": "stan-cluster",
+                "RESCALER_NAME": "rescaler",
+                "OPENFAAS_GATEWAY_URL": "http://gateway.openfaas.svc.cluster.local:8080"
+            },
             // "args": ["--nats-address=nats://localhost:4222"],
             "name": "Python : Fichier actuel",
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}"
         }
     ]
 }

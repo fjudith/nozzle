@@ -2,14 +2,14 @@
 <!DOCTYPE html><html lang="fr">
   <head>
   <meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1" />
-  <head><title>rescaler: {host}</title></head>
+  <head><title>rescaler: ${host}</title></head>
   <body>
-  <h1>{host}</h1>
+  <h1>${host}</h1>
   <form id="rescaler" >
   <label for="namespace">Namespace</label>
-  <input id="namespace" name="namespace" value="{namespace}">
+  <input id="namespace" name="namespace" value="${namespace}">
   <label for="name">Ingress name</label>
-  <input id="name" name="ingress" value="frontend">
+  <input id="name" name="ingress" value="${name}">
   </p>
   Click the <b>Rescale</b> button to restore <code>Deployment</code> and/or <code>Statefulset</code> replicas</p>
   <input type="submit" value="Rescale" />

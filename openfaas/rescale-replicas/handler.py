@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-r', '--rescaler', help="address of nats cluster", default=os.environ.get('RESCALER_NAME', None))
 
 # Kubernetes related arguments
-parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
+parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True n) #Remove ", default=True" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # Logger arguments
 parser.add_argument('-d', '--debug', help="enable debug logging", action="store_true")
