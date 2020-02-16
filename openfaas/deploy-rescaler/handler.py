@@ -78,7 +78,7 @@ def service(req):
     namespace = req['namespace']
 
      # Instantiate the Service object
-    with open("./template/manifests/rescaler-service.json") as f:
+    with open("./function/templates/manifests/rescaler-service.json") as f:
         json_data = json.loads(f.read())
 
         manifest = json.loads(Template(json.dumps(json_data)).render(namespace=namespace))
@@ -95,7 +95,7 @@ def deployment(req):
     namespace = req['namespace']
     
     # Instantiate the Deployment object
-    with open("./template/manifests/rescaler-deployment.json") as f:
+    with open("./function/templates/manifests/rescaler-deployment.json") as f:
         json_data = json.loads(f.read())
 
         manifest = json.loads(Template(json.dumps(json_data)).render(namespace=namespace))
@@ -113,10 +113,10 @@ def configmap(req):
     name      = req['name']
     host      = req['rules'][0]['host']
 
-    index_html_template = Template(filename='./template/html/index.html')
+    index_html_template = Template(filename='./function/templates/html/index.html')
     index_html = (index_html_template.render(namespace=namespace,host=host,name=name))
 
-    default_config_template = Template(filename='./template/nginx/default.conf')
+    default_config_template = Template(filename='./function/templates/nginx/default.conf')
     default_config = (default_config_template.render(gateway_url=args.gateway_url))
     
 

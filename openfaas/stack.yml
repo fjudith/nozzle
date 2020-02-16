@@ -64,6 +64,6 @@ functions:
     annotations:
       com.openfaas.serviceaccount: openfaas-rescale-manage
     environment:
-      RESCALER_NAME: "rescaler"
+      RESCALER_NAME: rescaler
     constraints:
      - "node.platform.os == linux"
