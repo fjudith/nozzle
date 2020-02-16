@@ -9,14 +9,12 @@ from kubernetes import client, config, watch
 from kubernetes.client.rest import ApiException
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-r', '--rescaler', help="address of nats cluster", default=os.environ.get('RESCALER_NAME', None))
-
+parser.add_argument('-r', '--rescaler', help="Name of the Rescaler deployment", default=os.environ.get('RESCALER_NAME', None))
 # Kubernetes related arguments
-parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
+parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # Logger arguments
-parser.add_argument('-d', '--debug', help="enable debug logging", action="store_true")
-parser.add_argument('--output-deployments', help="output all deployments to stdout", action="store_true", dest='enable_output')
+parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
 args = parser.parse_args()
 
 logger = logging.getLogger('script')
@@ -52,7 +50,6 @@ def rescaleStatefulset(payload):
             replicas = json.loads(statefulset.metadata.annotations["replicas.nozzle.io/last-applied-configuration"])
         elif "kubectl.kubernetes.io/last-applied-configuration" in statefulset.metadata.annotations:
             replicas = json.loads(statefulset.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])['spec']['replicas']
-
         else:
             next
 
@@ -83,7 +80,6 @@ def rescaleDeployment(payload):
             replicas = json.loads(deployment.metadata.annotations["replicas.nozzle.io/last-applied-configuration"])
         elif "kubectl.kubernetes.io/last-applied-configuration" in deployment.metadata.annotations:
             replicas = json.loads(deployment.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])['spec']['replicas']
-
         else:
             next
 

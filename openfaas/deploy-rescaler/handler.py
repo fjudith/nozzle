@@ -5,7 +5,6 @@ import os
 import imp
 import argparse
 import json
-import yaml
 import logging
 from pprint import pprint
 
@@ -17,23 +16,13 @@ from mako.template import Template
 
 
 parser = argparse.ArgumentParser()
-# Kubernetes related arguments
-parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) # "default=False" if running locally
-parser.add_argument('--pretty', help='Output pretty printed.', default=False)
-# parser.add_argument('--dry-run', help='Indicates that modifications should not be persisted. Valid values are: - All: all dry run stages will be processed (optional)')
-
-# OpenFaaS function related argument
+# Function related argument
 parser.add_argument('-g', '--gateway_url', help="URL of the OpenFaaS gateway service", default=os.environ.get('OPENFAAS_GATEWAY_URL', None))
-
-# NATS releated arguments
-parser.add_argument('-a', '--nats-address', help="address of nats cluster", default=os.environ.get('NATS_ADDRESS', None))
-parser.add_argument('--connect-timeout', help="NATS connect timeout (s)", type=int, default=10, dest='conn_timeout')
-parser.add_argument('--max-reconnect-attempts', help="number of times to attempt reconnect", type=int, default=5, dest='conn_attempts')
-parser.add_argument('--reconnect-time-wait', help="how long to wait between reconnect attempts", type=int, default=1, dest='conn_wait')
-
+# Kubernetes related arguments
+parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) # "default=False" if running locally
+parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # Logger arguments
-parser.add_argument('-d', '--debug', help="enable debug logging", action="store_true")
-parser.add_argument('--output-deployments', help="output all deployments to stdout", action="store_true", dest='enable_output')
+parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
 args = parser.parse_args()
 
 logger = logging.getLogger('script')

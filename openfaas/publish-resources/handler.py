@@ -12,16 +12,19 @@ from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-x', '--exclude', help="address of nats cluster", default=os.environ.get('RESCALER_NAME', None))
-
-parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
+# Function related arguments
+parser.add_argument('-t', '--topic', help="NATS Streaming topic", default="k8s_replicas")
+parser.add_argument('-x', '--exclude', help="Name of the Rescaler deployment", default=os.environ.get('RESCALER_NAME', None))
+# Kubernetes related arguments
 parser.add_argument('-l', '--selector', help="Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)", default='nightly-shutdown=true')
-parser.add_argument('-a', '--nats-address', help="address of nats cluster", default=os.environ.get('NATS_ADDRESS', None))
-parser.add_argument('-d', '--debug', help="enable debug logging", action="store_true")
-parser.add_argument('--output-deployments', help="output all deployments to stdout", action="store_true", dest='enable_output')
+parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
+# NATS related arguments
+parser.add_argument('-a', '--nats-address', help="Address of nats cluster", default=os.environ.get('NATS_ADDRESS', None))
 parser.add_argument('--connect-timeout', help="NATS connect timeout (s)", type=int, default=10, dest='conn_timeout')
-parser.add_argument('--max-reconnect-attempts', help="number of times to attempt reconnect", type=int, default=5, dest='conn_attempts')
-parser.add_argument('--reconnect-time-wait', help="how long to wait between reconnect attempts", type=int, default=1, dest='conn_wait')
+parser.add_argument('--max-reconnect-attempts', help="Number of times to attempt reconnect", type=int, default=5, dest='conn_attempts')
+parser.add_argument('--reconnect-time-wait', help="How long to wait between reconnect attempts", type=int, default=1, dest='conn_wait')
+# Logger arguments
+parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
 args = parser.parse_args()
 
 logger = logging.getLogger('script')
@@ -63,7 +66,7 @@ async def publish(loop):
     nc = NATS()
     
     try:
-        await nc.connect(args.nats_address, loop=loop, connect_timeout=args.conn_timeout, max_reconnect_attempts=args.conn_attempts, reconnect_time_wait=args.conn_wait)
+        await nc.connect(servers=[args.nats_address], loop=loop, connect_timeout=args.conn_timeout, max_reconnect_attempts=args.conn_attempts, reconnect_time_wait=args.conn_wait)
     except ErrNoServers as e:
         # Could not connect to any server in the cluster.
         print(e)
@@ -78,7 +81,7 @@ async def publish(loop):
         ))
             
     # Simple publisher and async subscriber via coroutine.
-    sid = await nc.subscribe("k8s_replicas", cb=message_handler)
+    sid = await nc.subscribe(args.topic, cb=message_handler)
 
     async def get_deployments():
         for ns in CoreV1Api.list_namespace(label_selector=args.selector).items:
@@ -90,7 +93,7 @@ async def publish(loop):
                 
                 if deploy.spec.replicas > 0 and not deploy.metadata.name == args.exclude:
                     try:
-                        await nc.publish("k8s_replicas", json.dumps(msg).encode('utf-8'))
+                        await nc.publish(args.topic, json.dumps(msg).encode('utf-8'))
                         await nc.flush(0.500)
                     except ErrConnectionClosed as e:
                         print("Connection closed prematurely.")
@@ -109,7 +112,7 @@ async def publish(loop):
                 
                 if sts.spec.replicas > 1:
                     try:
-                        await nc.publish("k8s_replicas", json.dumps(msg).encode('utf-8'))
+                        await nc.publish(args.topic, json.dumps(msg).encode('utf-8'))
                         await nc.flush(0.500)
                     except ErrConnectionClosed as e:
                         print("Connection closed prematurely.")
