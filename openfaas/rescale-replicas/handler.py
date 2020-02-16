@@ -46,14 +46,16 @@ def rescaleStatefulset(payload):
 
     for statefulset in statefulsets.items:
 
-        if "replicas.nozzle.io/last-applied-configuration" in statefulset.metadata.annotations:
-            replicas = json.loads(statefulset.metadata.annotations["replicas.nozzle.io/last-applied-configuration"])
+        if "replicas.nozzle.io/last-known-configuration" in statefulset.metadata.annotations:
+            source_annotation = "replicas.nozzle.io/last-known-configuration"
+            replicas = json.loads(statefulset.metadata.annotations[source_annotation])
         elif "kubectl.kubernetes.io/last-applied-configuration" in statefulset.metadata.annotations:
-            replicas = json.loads(statefulset.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])['spec']['replicas']
+            source_annotation = "kubectl.kubernetes.io/last-applied-configuration"
+            replicas = json.loads(statefulset.metadata.annotations[source_annotation])['spec']['replicas']
         else:
             next
 
-        logger.info("Restoring replicas of Statefulset (sts) Name: %s to %s" % (statefulset.metadata.name, json.dumps(replicas)))
+        logger.info("Restoring replicas of Statefulset (sts) Name: %s to %s from Annotation: %" % (statefulset.metadata.name, json.dumps(replicas), source_annotation))
         
         body={'spec':{'replicas': replicas}}
         
@@ -76,14 +78,16 @@ def rescaleDeployment(payload):
 
     for deployment in deployments.items:
 
-        if "replicas.nozzle.io/last-applied-configuration" in deployment.metadata.annotations:
-            replicas = json.loads(deployment.metadata.annotations["replicas.nozzle.io/last-applied-configuration"])
+        if "replicas.nozzle.io/last-known-configuration" in deployment.metadata.annotations:
+            source_annotation = "replicas.nozzle.io/last-known-configuration"
+            replicas = json.loads(deployment.metadata.annotations[source_annotation])
         elif "kubectl.kubernetes.io/last-applied-configuration" in deployment.metadata.annotations:
-            replicas = json.loads(deployment.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])['spec']['replicas']
+            source_annotation = "kubectl.kubernetes.io/last-applied-configuration"
+            replicas = json.loads(deployment.metadata.annotations[source_annotation])['spec']['replicas']
         else:
             next
 
-        logger.info("Restoring replicas of Deployment (deploy) Name: %s to %s" % (deployment.metadata.name, json.dumps(replicas)))
+        logger.info("Restoring replicas of Deployment (deploy) Name: %s to %s from Annotation: %s" % (deployment.metadata.name, json.dumps(replicas), source_annotation))
         
         body={'spec':{'replicas': replicas}}
         
@@ -105,15 +109,16 @@ def restoreIngress(payload):
     
     for ingress in ingresses.items:
 
-        if "rules.nozzle.io/last-applied-configuration" in ingress.metadata.annotations:
-            last_config = json.loads(ingress.metadata.annotations["rules.nozzle.io/last-applied-configuration"])
+        if "rules.nozzle.io/last-known-configuration" in ingress.metadata.annotations:
+            source_annotation = "rules.nozzle.io/last-known-configuration"
+            last_config = json.loads(ingress.metadata.annotations[source_annotation])
         elif "kubectl.kubernetes.io/last-applied-configuration" in ingress.metadata.annotations:
-            
-            last_config = json.loads(ingress.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])['spec']['rules']
+            source_annotation = "kubectl.kubernetes.io/last-applied-configuration"
+            last_config = json.loads(ingress.metadata.annotations[source_annotation])['spec']['rules']
         else:
             next
 
-        logger.info("Restoring rules of Ingress (ing) Name: %s" % (ingress.metadata.name))
+        logger.info("Restoring rules of Ingress (ing) Name: %s from Annotation: %s" % (ingress.metadata.name, source_annotation))
 
         body = [
                 {"op": "replace", "path": "/spec/rules" , "value": last_config}

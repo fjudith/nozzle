@@ -88,8 +88,8 @@ async def publish(loop):
             for deploy in AppsV1Api.list_namespaced_deployment(ns.metadata.name).items:
                 logger.info("Namespace: %s Deployment: %s Replica: %s" % (deploy.metadata.namespace, deploy.metadata.name, deploy.spec.replicas))
                 msg = {'namespace': deploy.metadata.namespace, 'name': deploy.metadata.name, 'kind': 'deployment', 'replicas': deploy.spec.replicas, 'labels': deploy.spec.template.metadata.labels}
-                if args.enable_output:
-                    print(json.dumps(msg))
+                
+                logger.debug("Publishing Deployment: %s" % (json.dumps(msg)))
                 
                 if deploy.spec.replicas > 0 and not deploy.metadata.name == args.exclude:
                     try:
@@ -107,8 +107,8 @@ async def publish(loop):
             for sts in AppsV1Api.list_namespaced_stateful_set(ns.metadata.name).items:
                 logger.info("Namespace: %s StatefulSet: %s Replica: %s" % (sts.metadata.namespace, sts.metadata.name, sts.spec.replicas))
                 msg = {'namespace': sts.metadata.namespace, 'name': sts.metadata.name, 'kind': 'statefulset', 'replicas': sts.spec.replicas, 'labels': sts.spec.template.metadata.labels}
-                if args.enable_output:
-                    print(json.dumps(msg))
+
+                logger.debug("Publishing Statefulset: %s" % (json.dumps(msg)))
                 
                 if sts.spec.replicas > 1:
                     try:

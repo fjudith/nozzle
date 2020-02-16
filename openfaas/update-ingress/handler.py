@@ -66,13 +66,8 @@ def handle(req):
     # Client to Manage Web-Rescale deployment
     AppsV1Api = client.AppsV1Api()
 
-    # Service patches
-    serviceName = '[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/serviceName", "value": "web-activate"}]'
-    servicePort = '[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/servicePort", "value": 80}]'
-
     # Convert labels to key=value array of string (e.g. key1=value1,key2=value2) 
     array=[]
-    print(payload['labels'])
 
     for key, value in payload["labels"].items():
         temp = key + "=" + value
@@ -82,7 +77,7 @@ def handle(req):
 
     # Search for service that use the Selector
     try:
-        logger.info("Searching for Service (svc) in Namespace: %s with Labels: %s" % (payload['namespace'], label_selector))
+        logger.debug("Searching for Service (svc) in Namespace: %s with Labels: %s" % (payload['namespace'], label_selector))
         
         services = CoreV1Api.list_namespaced_service(namespace=payload['namespace'], label_selector=label_selector, pretty=args.pretty)
     except ApiException as e:
@@ -94,21 +89,39 @@ def handle(req):
     try:
         # Search for in Ingresses configured with the Service Name
         for service in services.items:
-            logger.info("Searching for Ingress (ing) in Namespace: %s with Bakend: %s" % (payload['namespace'], service.metadata.name))
+            logger.debug("Searching for Ingress (ing) in Namespace: %s with Bakend: %s" % (payload['namespace'], service.metadata.name))
             
             ingresses = ExtensionsV1beta1Api.list_namespaced_ingress(namespace=payload['namespace'], pretty=args.pretty)
-            #pprint(ingresses)
 
             for ingress in ingresses.items:
-                logger.info("Searching for Ingress Backend: %s in Ingress: %s" % (service.metadata.name, ingress.metadata.name))
+                logger.debug("Searching for Ingress Backend: %s in Ingress: %s" % (service.metadata.name, ingress.metadata.name))
                 rule_index = 0
                 for rule in ingress.spec.rules:
                     path_index = 0
                     for path in rule.http.paths:
                         if path.backend.service_name == service.metadata.name:
                             logger.info("Found Service name: %s Port: %s in Ingress: %s" % (path.backend.service_name, path.backend.service_port, ingress.metadata.name))
-                            logger.info("Patching Ingress name: %s containing service Name: %s with Port: %s" % (ingress.metadata.name, path.backend.service_name, path.backend.service_port))
+                            logger.debug("Patching Ingress name: %s containing service Name: %s with Port: %s" % (ingress.metadata.name, path.backend.service_name, path.backend.service_port))
                             
+                            # Backup current rules if "kubectl.kubernetes.io/last-applied-configuration" annotation does not exist
+                            if not "kubectl.kubernetes.io/last-applied-configuration" in ingress.metadata.annotations:
+                                annotation = {
+                                    "metadata": {
+                                        "annotations": {
+                                            "rules.nozzle.io/last-known-configuration": json.dumps(client.ApiClient().sanitize_for_serialization(ingress.spec.rules), indent=None)
+                                        }
+                                    }
+                                }
+
+                                logger.debug("Backing up rules of Ingress (ing) Name: %s to %s" % (ingress.metadata.name, annotation))
+                                try:
+                                    backup_rules = ExtensionsV1beta1Api.patch_namespaced_ingress(name=ingress.metadata.name, namespace=ingress.metadata.namespace, body=json.loads(json.dumps(annotation)), pretty=args.pretty)
+                                except ApiException as e:
+                                    print("Exception when calling AppsV1Api->patch_namespaced_ingress: %s\n" % e)
+                                    print(payload.keys())
+                                    print(type(payload))
+                                    print(str(payload))
+
                             body = [
                                 {"op": "replace", "path": "/spec/rules/" + str(rule_index) + "/http/paths/" + str(path_index) + "/backend/serviceName", "value": "rescaler"},
                                 {"op": "replace", "path": "/spec/rules/" + str(rule_index) + "/http/paths/" + str(path_index) + "/backend/servicePort", "value": 3000}
@@ -118,13 +131,14 @@ def handle(req):
                                 logger.debug("Patch specifications: %s" %(json.loads(json.dumps(body))))
 
                                 patch_ingress = ExtensionsV1beta1Api.patch_namespaced_ingress(name=ingress.metadata.name, namespace=ingress.metadata.namespace, body=json.loads(json.dumps(body)), pretty=args.pretty)
+                                logger.info("Patched Ingress (ing) Name: %s" % (ingress.metadata.name))
                             except ApiException as e:
                                 print("Exception when calling ExtensionsV1beta1Api->patch_namespaced_ingress: %s\n" % e)
                                 print(payload.keys())
                                 print(type(payload))
                                 print(str(payload))
                             finally:
-                                loop.run_until_complete(publish(json.loads(ingress.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]), loop))
+                                loop.run_until_complete(publish(json.loads(json.dumps(client.ApiClient().sanitize_for_serialization(ingress), indent=None)), loop))
                         path_index += 1
                     rule_index +=1
                  
