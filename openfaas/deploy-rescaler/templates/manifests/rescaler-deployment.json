@@ -42,9 +42,19 @@
                         "resources": {},
                         "volumeMounts": [
                             {
-                                "name": "www",
+                                "name": "html",
                                 "mountPath": "/usr/share/nginx/html/index.html",
                                 "subPath": "index.html"
+                            },
+                            {
+                                "name": "css",
+                                "mountPath": "/usr/share/nginx/html/style.css",
+                                "subPath": "style.css"
+                            },
+                            {
+                                "name": "js",
+                                "mountPath": "/usr/share/nginx/html/javascript.js",
+                                "subPath": "javascript.js"
                             },
                             {
                                 "name": "default",
@@ -58,8 +68,16 @@
                 ],
                 "volumes": [
                     {
-                    "name": "www",
+                    "name": "html",
                     "configMap": {"name": "rescaler", "items": [{"key": "index.html", "path": "index.html"}]}
+                    },
+                    {
+                        "name": "css",
+                        "configMap": {"name": "rescaler", "items": [{"key": "style.css", "path": "style.css"}]}
+                    },
+                    {
+                        "name": "js",
+                        "configMap": {"name": "rescaler", "items": [{"key": "javascript.js", "path": "javascript.js"}]}
                     },
                     {
                     "name": "default",
