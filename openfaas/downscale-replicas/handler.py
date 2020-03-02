@@ -12,7 +12,7 @@ from kubernetes.client.rest import ApiException
 parser = argparse.ArgumentParser()
 # Function related arguments
 parser.add_argument('-md', '--max-deployment', help="Maximum number of Deployement replicas to last in the cluster", action="store_true", default=0)
-parser.add_argument('-ms', '--max-statulset', help="Maximum number of Statefulset replicas to last in the cluster", action="store_true", default=1)
+parser.add_argument('-ms', '--max-statefulset', help="Maximum number of Statefulset replicas to last in the cluster", action="store_true", default=1)
 # Kubernetes related arguments
 parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
