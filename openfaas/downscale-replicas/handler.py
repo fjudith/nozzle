@@ -105,7 +105,7 @@ def handle(req):
         body={'spec':{'replicas': args.max_statefulset}}
         try:
             api_response = AppsV1Api.patch_namespaced_stateful_set_scale(name=payload['name'], namespace=payload['namespace'], body=body, pretty=args.pretty)
-            logger.info("Patched number of replicas of Statefulset (sts) Name: %s to %s" % (deployment.metadata.name, args.max_statefulset))
+            logger.info("Patched number of replicas of Statefulset (sts) Name: %s to %s" % (statefulset.metadata.name, args.max_statefulset))
         except ApiException as e:
             print("Exception when calling AppsV1Api->patch_namespaced_stateful_set_scale: %s\n" % e)
             print(payload.keys())
