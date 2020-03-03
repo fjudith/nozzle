@@ -105,6 +105,13 @@ def configmap(req):
     index_html_template = Template(filename='./function/templates/html/index.html')
     index_html = (index_html_template.render(namespace=namespace,host=host,name=name))
 
+    javascript_template = Template(filename='./function/templates/html/javascript.js')
+    javascript = (javascript_template.render(namespace=namespace,host=host,name=name))
+
+    stylesheet_template = Template(filename='./function/templates/html/style.css')
+    stylesheet = (stylesheet_template.render(namespace=namespace,host=host,name=name))
+
+
     default_config_template = Template(filename='./function/templates/nginx/default.conf')
     default_config = (default_config_template.render(gateway_url=args.gateway_url))
     
@@ -120,7 +127,7 @@ def configmap(req):
             "name": "rescaler",
             "namespace": namespace
         },
-        "data": {"index.html": index_html, "default.conf": default_config},
+        "data": {"index.html": index_html, "javascript.js": javascript, "style.css": stylesheet, "default.conf": default_config},
     }
 
 
