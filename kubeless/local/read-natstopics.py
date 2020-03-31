@@ -14,7 +14,7 @@ from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--in-cluster', help="use in cluster kubernetes config", action="store_true")
-parser.add_argument('-l', '--selector', help="Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)", default='nightly-shutdown=true')
+parser.add_argument('-l', '--selector', help="Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)", default='nozzle=true')
 parser.add_argument('-a', '--nats-address', help="address of nats cluster", default=os.environ.get('NATS_ADDRESS', None))
 parser.add_argument('-s', '--stan-cluster', help="name of nats streaming cluster", default=os.environ.get('STAN_CLUSTER', None))
 parser.add_argument('-d', '--debug', help="enable debug logging", action="store_true")

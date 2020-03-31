@@ -11,7 +11,7 @@ queue "stan"
 entity "rescaler"
 
 == Inventory ==
-"publish-replicas" -> "kubernetes" : List namespaces labeled \n ""nightly-shutdown=true""
+"publish-replicas" -> "kubernetes" : List namespaces labeled \n ""nozzle=true""
 "kubernetes" --> "publish-replicas" : Eligible workload replicas (deploy/sts)
 "publish-replicas" -> "nats": Publish to **k8s_replicas** topic
 

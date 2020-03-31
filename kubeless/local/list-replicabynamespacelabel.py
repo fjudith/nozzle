@@ -14,7 +14,7 @@ from pprint import pprint
 # Command Arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true")
-parser.add_argument('-l', '--selector', help="Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)", default='nightly-shutdown=true')
+parser.add_argument('-l', '--selector', help="Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)", default='nozzle=true')
 parser.add_argument('-d', '--debug', help="enable debug logging", action="store_true")
 parser.add_argument('-t', '--timeout', help="timout seconds", default='30')
 parser.add_argument('-p', '--pretty', help="pretty printed output", action="store_true")

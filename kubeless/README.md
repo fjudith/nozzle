@@ -1,7 +1,7 @@
 
 # Kubernetes list replica on given namespace label selector
 
-List all deployments and statefulsets replicas of namespaces containing the label `nightly-shutdown=true`.
+List all deployments and statefulsets replicas of namespaces containing the label `nozzle=true`.
 Return a message containing number replica of both resources.
 
 ![architecture](./architecture_fra.png)
@@ -19,7 +19,7 @@ Create a namespace and create the deployment and the statefulset for testing pur
 ```bash
 kubectl create namespace demo
 
-kubectl label namespace demo nightly-shutdown=true
+kubectl label namespace demo nozzle=true
 kubectl -n demo apply -f manifests/deployment.yaml
 kubectl -n demo apply -f manifests/statefulset.yaml
 ```
@@ -42,7 +42,7 @@ python3 list-replicabynamespacelabelselector.py
 
 Kubeless `cronjob` function is leveraged to publish amount of replica of Deployment and Statefulset resources on a scheduled basis.
 
-Execute the following command to create a `function` that publish the amount of replica of Namespaces labeled `nightly-shutdown=true`.
+Execute the following command to create a `function` that publish the amount of replica of Namespaces labeled `nozzle=true`.
 
 > It is required to change the service account to get appropriate RBAC permssions on the Kubernetes API.
 > But Kubeless does not support ServiceAccount in Functions currently

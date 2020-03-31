@@ -3,5 +3,5 @@ kind: Namespace
 metadata:
   name: demo
   labels:
-    nightly-shutdown: 'true'
+    nozzle: 'true'
 ---
