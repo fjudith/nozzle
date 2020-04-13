@@ -16,12 +16,12 @@ This repository contains CI example based on:
 You need to get a copy of this repository to run the commands:
 
 ```bash
-git clone https://github.com/fjudith/noozle
+git clone https://github.com/fjudith/nozzle
 
-cd noozle/openfaas
+cd nozzle/openfaas
 ```
 
-## Noozle Stack deployment
+## nozzle Stack deployment
 
 This topic covers the build, release and deployment of the Nozzle functions inside the Kubernetes cluster.
 

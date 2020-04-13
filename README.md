@@ -18,8 +18,8 @@ The last-known Kubernetes resources configuration is backed up as [annotations](
 
 Following additional annotations are implement depending on the ressource type:
 
-* **Deployment & Statefulset**: `replicas.noozle.io/last-known-configuration`
-* **Ingress**: `rules.noozle.io/last-known-configuration`
+* **Deployment & Statefulset**: `replicas.nozzle.io/last-known-configuration`
+* **Ingress**: `rules.nozzle.io/last-known-configuration`
 
 **Warning** : Ingress resources are modified to redirect the traffic to the `rescaler` pod
 
