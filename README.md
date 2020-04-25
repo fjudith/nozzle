@@ -1,27 +1,67 @@
 # Nozzle
 
-Reduce Kubernetes workload on scheduled or traffic decision basis and restore workload on-demand via Web UI or http trigger.
+Reduce Kubernetes workload on schedule or traffic decision basis and restore workload on-demand via Web UI or http trigger.
+
+## Introduction
+
+This project has been initially created during the [Sustainable Digital Challenge](https://www.apidays.co/sustainable-digital-challenge) event organized by [APIdays](https://www.apidays.co) to demonstrate the vision of an aggressive compute resource saving strategy.
+
+> Do you keep the lights on, once you left the room ?
+
+This simple sentense resumes the resoning on how over estimating [availability](https://uptime.is) leads to uncouscious a wast of natural resources.
+
+Nozzle promotes sustainability by simply shuting down eligible resources like:
+
+- **Non-production** environments managed by developer
+- **Application services** required to run only on working hours
+
+### How it works
+
+Nozzle has been initially designed to run as function inside Kubernetes.
+The following sequence diagram describe the steps that functions acheive to securely reduce and restore the workload managed by this orchestrator.
+
+![UML](./docs/diagrams/nozzle/nozzle.png)
+
+### Design requirements
+
+The project has been design using the following requirements to ensure the product sustainability.
+
+* [x] Store only when required
+* [x] Search for reuse before creating something new
+* [x] Aims for the least footprint
+* [x] Constrain the volume of data transfer and resource allocation
+* [x] Scale-to-zero when possible
 
 ### Screeshots
 
-![Grafana footprint](./docs/img/grafana_downscale.png)
+The follwing screeshots show the Nozzle impact on the [microservices-demo](https://microservices-demo.github.io) from [Weaveworks](https://www.weave.works), which by default supports 14 microservices.
 
-![Rescaler Web UI](./docs/img/rescaler.png)
+User gets the following reactive landing page after noozle downscaled the application.
 
-![Rescaler footprint](./docs/img/grafana_rescaler.png)
+![Rescaler landing page](./docs/img/rescaler_landing_page.png)
+
+Once clicked on the **rescale** button, the user gets the logs related to the rescaling of the workload associated to its application.
+
+> From a **storage efficiency** point-of-view Noozle restores the application from Kubernetes resource [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
+> By defualt the last known Kubernetes resources configuration is backed up inside the native `kubectl.kubernetes.io/last-applied-configuration` annotation.
+> If not present, Nozzle generates its own annotation containing the minimal amount of date.
+> The following annotation are generated depending on the resource type:
+> * **Deployment & Statefulset**: `replicas.nozzle.io/last-known-configuration`
+> * **Ingress**: `rules.nozzle.io/last-known-configuration`
+
+![Rescaler landing page logs](./docs/img/rescaler_logs.png)
+
+Resource consumption after user request to rescale.
 
 ![Rescaling footprint](./docs/img/grafana_rescale.png)
 
-## Backup efficiency
+User have to refresh it brower tab to regain access to its application
 
-The last-known Kubernetes resources configuration is backed up as [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/), **only** if the native `kubectl.kubernetes.io/last-applied-configuration`  is not present.
+![Rescaling footprint](./docs/img/sock-shop.png)
 
-Following additional annotations are implement depending on the ressource type:
+This last picture shows the resource consumtion after noozle downscaled the application and deployed the rescaler.
 
-* **Deployment & Statefulset**: `replicas.nozzle.io/last-known-configuration`
-* **Ingress**: `rules.nozzle.io/last-known-configuration`
-
-**Warning** : Ingress resources are modified to redirect the traffic to the `rescaler` pod
+![Grafana footprint](./docs/img/grafana_downscale.png)
 
 ## Message formats
 
@@ -29,6 +69,8 @@ Following additional annotations are implement depending on the ressource type:
 * **Ingress JSON**: `{"namespace": str, "name": str, "rules": { dict }}`
 
 ## Implementations
+
+Following the project progress the following plateforms were implemented to compare their own sustainability.
 
 ### Kubeless
 
@@ -38,58 +80,10 @@ Serverless implementation based on Python3, Kubeless and NATS.
 
 Serverless implementation based on Python3, OpenFaaS and NATS.
 
-### Dapr
+### Fission
 
-Serverless implementation based on Python3, Dapr and NATS.
+Serverless implementation based on Python3, Fission and NATS Streaming.
 
 ### Golang
 
 Native Kubernetes implementation based on a Custom Controller written and Go `1.13.x`.
-
-```plantuml
-@startuml
-
-actor "user"
-participant "publish-replicas"
-database "kubernetes"
-queue "nats"
-participant "downscale-replicas"
-participant "inject-rescaler"
-participant "update-ingress"
-queue "stan"
-entity "rescaler"
-
-== Inventory ==
-"publish-replicas" -> "kubernetes" : List namespaces labeled \n ""nozzle=true""
-"kubernetes" --> "publish-replicas" : Eligible workload replicas (deploy/sts)
-"publish-replicas" -> "nats": Publish to **k8s_replicas** topic
-
-== Downscale ==
-"downscale-replicas" -> "nats": Subscribe **k8s_replicas** topic
-"nats" --> "downscale-replicas": Replicas JSON
-"downscale-replicas" -> "kubernetes": Reduce replicas: \n""deploy = 0, sts = 1""
-
-== Redirect ==
-"update-ingress" -> "nats": Subscribe **k8s_replicas** topic
-"nats" --> "update-ingress": Replicas JSON
-"update-ingress" -> "stan": Publish matched selector \n ingress spec to topic **k8s_ingress** topic
-"update-ingress" -> "kubernetes": Change ingress target
-|||
-"inject-rescaler" -> "nats": Subscribe **k8s_replicas** topic
-"nats" -> "inject-rescaler": Replicas JSON
-"inject-rescaler" -> "kubernetes": Deploy on-demand replicas rescaler 
-"kubernetes" --> "rescaler": Run Web server
-
-== User action ==
-"user" -> "rescaler": Request rescale
-
-== Rescale ==
-"rescale-replicas" -> "stan": Subscribe **k8s_ingresses**
-"rescaler" -> "rescale-replicas": Request rescaling
-"stan" --> "rescale-replicas": Select ingress
-"rescale-replicas" -> "kubernetes": Restore replicas
-"rescale-replicas" -> "kubernetes": Restore ingress
-"rescale-replicas" -> "kubernetes": Remove rescaler
-"kubernetes" --> "rescaler": Delete rescaler resources (deploy, svc)
-@enduml
-```
