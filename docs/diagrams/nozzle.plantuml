@@ -1,0 +1,126 @@
+@startuml
+
+skinparam backgroundColor #000000
+
+skinparam shadowing false  
+skinparam NoteBackgroundColor #0F0F0F
+skinparam NoteBorderColor #121212
+skinparam NoteFontColor #FFFFFF
+  
+skinparam sequence {  
+  ArrowColor #FFFFFF
+  ArrowFontColor #848484
+  
+  ActorBorderColor #FFFFFF
+  ActorBackgroundColor #FFFFFF
+
+  LifeLineBorderColor #424242
+
+  BoxBorderColor #121212
+  BoxPadding 12px 20px
+  BoxFontColor #5E5E5E
+  BoxFontSize 30
+
+  ParticipantBorderColor #121212
+  ParticipantBackgroundColor #121212
+  ParticipantFontName Arial
+  ParticipantFontColor #FFFFFF
+
+}
+
+actor "user"
+participant "app" #FFB40F
+box "Nozzle" #121212
+  participant "publish-resources"
+  participant "nats" #27AAE0
+  participant "downscale-replicas"
+  participant "deploy-rescaler"
+  participant "update-ingress"
+  participant "rescale-replicas"
+end box
+participant "kubernetes" #326CE5
+participant "rescaler" #03DAC6
+
+"publish-resources" -> "kubernetes": Query
+activate "kubernetes"
+note right
+  Retreive deploymlent and statefulset resources
+  in namespaces labed ""nozzle=true""
+end note
+
+"kubernetes" --> "app": list replicas
+
+"kubernetes" --> "publish-resources": Return the list\n of eligible resources replicas
+deactivate "kubernetes"
+note right
+   List of eligible resource replicas
+end note
+
+"publish-resources" -> "nats": Publish resource list to **k8s_replicas** topic
+activate "nats"
+
+"downscale-replicas" -> "nats": Subscribe **k8s_replicas** topic
+"update-ingress" -> "nats": Subscribe **k8s_replicas** topic
+"deploy-rescaler" -> "nats": Subscribe **k8s_replicas** topic
+
+"nats" --> "downscale-replicas": Json
+"downscale-replicas" -> "kubernetes": Backup current config. & downscale
+activate "kubernetes"
+note left
+  Create an annotation **replicas.nozzle.io/last-known-configuration**
+  containing the current resource config,
+  only if **kubectl.kubernetes.io/last-applied-configuration** does nots exists
+  
+  Downscale resources replicas: 
+    - Reduce ""deployment"" from n to 0
+    - Reduce ""statefulset"" from n to 1
+end note
+"kubernetes" -> "app": Downscale resources replicas
+
+
+"nats" --> "deploy-rescaler": Json
+"deploy-rescaler" -> "kubernetes": Deploy the website to restore replicas
+activate "rescaler"
+note left
+  Create a **configmap** resource containing the static code.
+  Create a **deployment** that a ""nginx-alpine"" image consumming the **configmap**
+  Create a **service** to expose the **deployment**
+end note
+"kubernetes" -> "rescaler": Run & expose
+
+"nats" --> "update-ingress": Json
+"update-ingress" -> "kubernetes": Backup current config. & re-route
+deactivate "nats"
+deactivate "kubernetes"
+note left
+  List ingress resources in the namespace
+  Create an annotation **rules.nozzle.io/last-known-configuration**
+  containing the current host redirection rules,
+  only if **kubectl.kubernetes.io/last-applied-configuration** does nots exists.
+
+  Change rules to point to the ""rescaler"" service
+  located in same namespace
+end note
+
+"user" -> "rescaler": Request to restore the workload
+
+"rescaler" -> "rescale-replicas": Trigger
+"rescale-replicas" -> "kubernetes": Restore replicas and ingress rules
+activate "kubernetes"
+note left
+  Based on backup annotations:
+    - Restore ""deployment"" from 0 to n
+    - Restore ""statefulset"" from 1 to n
+    - Restore ""ingress"" routing rules
+end note
+"kubernetes" -> "app": Rescale workdload
+"kubernetes" --> "rescale-replicas": Confirm
+"rescale-replicas" --> "rescaler": Confirm restore
+"rescale-replicas" -> "kubernetes": Destroy rescaler
+deactivate "kubernetes"
+"kubernetes" -> "rescaler": Delete rescaler resources
+destroy rescaler
+
+"user" -> "user": Refresh browser
+"user" -> "app": Access
+@enduml
