@@ -39,25 +39,25 @@ The project has been design using the following requirements to ensure the produ
   <tr align='center'>
     <th align='center'>Serverless</th>
     <td align='center'><img src='docs/media/kubeless.png' width="50px"></td>
-    <td align='center'><a ref='./kubeless'>Kubeless<a></td>
+    <td align='center'><a ref='https://kubeless.io'>Kubeless<a></td>
     <td align='center'>stable</td>
   </tr>
   <tr align='center'>
     <th align='center'>Serverless</th>
     <td align='center'><img src='docs/media/openfaas.png' width="50px"></td>
-    <td align='center'><a ref='./openfaas/'>OpenFaaS<a></td>
+    <td align='center'><a ref='https://openfaas.com'>OpenFaaS<a></td>
     <td align='center'>stable</td>
   </tr>
   <tr align='center'>
     <th align='center'>Serverless</th>
     <td align='center'><img src='docs/media/fission.png' width="50px"></td>
-    <td align='center'><a ref='./fission/'>Fission<a></td>
+    <td align='center'><a ref='https://fission.io'>Fission<a></td>
     <td align='center'>alpha</td>
   </tr>
   <tr align='center'>
     <th align='center'>Binary</th>
     <td align='center'><img src='docs/media/gopher.png' width="30px"></td>
-    <td align='center'><a ref='./golang/'>Golang<a></td>
+    <td align='center'><a ref='https://golang.org'>Golang<a></td>
     <td align='center'>not started</td>
   </tr>
 </table>
