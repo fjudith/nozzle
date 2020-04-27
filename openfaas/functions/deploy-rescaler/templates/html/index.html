@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1" />
+
+    <head>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <title>rescaler: ${host}</title>
+    </head>
+
+<body>
+    <h1>${host}</h1>
+    <p>Click the <b>Rescale</b> button to restore <code>Deployment</code> and/or <code>Statefulset</code> replicas</p>
+    <div class="container">
+        <form id="rescaler">
+            <div class="row">
+                <div class="col-25">
+                    <label for="namespace">Namespace</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="namespace" name="namespace" value="${namespace}" readonly>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="name">Ingress name</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="name" name="ingress" value="${name}" readonly>
+                </div>
+            </div>
+            <div class="row">
+                <input type="submit" value="Rescale" />
+            </div>
+        </form>
+    </div>
+    <div class="container">
+        <h2>Output</h2>
+        <div id='output'></div>
+    </div>
+</body>
+<script src="javascript.js">
+</script>
+
+</html>

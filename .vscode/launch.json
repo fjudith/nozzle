@@ -9,7 +9,8 @@
                 "NATS_ADDRESS": "nats://localhost:4222",
                 "STAN_CLUSTER": "stan-cluster",
                 "RESCALER_NAME": "rescaler",
-                "OPENFAAS_GATEWAY_URL": "http://gateway.openfaas.svc.cluster.local:8080"
+                "OPENFAAS_GATEWAY_URL": "http://gateway.openfaas.svc.cluster.local:8080",
+                "TRIGGER_URL": "http://rescale-replicas.kubeless:8080"
             },
             // "args": ["--nats-address=nats://localhost:4222"],
             "name": "Python : Fichier actuel",
