@@ -19,7 +19,7 @@ COPY ./requirements.txt /kubeless/
 RUN pip install --prefix=${KUBELESS_INSTALL_VOLUME} -r ${KUBELESS_DEPS_FILE}
 
 # Rescaler Website pod specification and static content
-COPY ./templates        /function/templates
+COPY ./templates /function/templates
 
 # Rescaler function
 COPY ./handler.py /kubeless/
