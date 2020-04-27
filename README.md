@@ -31,6 +31,7 @@ The project has been design using the following requirements to ensure the produ
 * [x] Aims for the least footprint
 * [x] Constrain the volume of data transfer and resource allocation
 * [x] Scale-to-zero when possible
+* [x] Compliance with the [12 Factor](https://12factor.net)
 
 ### Implementations roadmap
 
