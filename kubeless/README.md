@@ -149,50 +149,11 @@ kubeless function deploy rescale-replicas \
 kubectl -n kubeless patch deployment rescale-replicas -p '{"spec":{"template":{"spec":{"serviceAccountName":"kubeless-rescale-manage"}}}}'
 ```
 
-
-
-
-
----
-
-## Patch Ingress based on Deployment/Statefulset selectors
-
-To indentify the Ingress resource to patch, Template labels pushed for each Deployment and Statefulset are used to identify the associated service.
-Then service name is used to identify which Ingress has the Service name as backend.
-
-If an Ingress resource matches the criteria, a patch modifying the backend `serviceName` and `servicePort` is applied to it.
-
-Execute the following command to deploy the function to patch the eligible Ingress resources.
+Execute the following command to create a `trigger` that run the `rescale-replicas` function on HTTP POST events.
 
 ```bash
-kubeless function deploy update-ingress --namespace kubeless --runtime python3.6 --handler update-ingress.patch --from-file functions/update-ingress.py --dependencies functions/publish-requirements.txt --env NATS_ADDRESS='nats://nats-cluster.nats-io:4222' && \
-kubectl apply -n kubeless -f manifests/kubeless-ingress-manage-rbac.yaml && \
-kubectl -n kubeless patch deployment update-ingress -p '{"spec":{"template":{"spec":{"serviceAccountName":"kubeless-ingress-manage"}}}}'
+kubeless trigger http create --namespace kubeless rescale-replicas --function-name rescale-replicas
 ```
-
-Execute the following command to create a `trigger` that run the `function` on NATS events.
-
-```bash
-kubeless trigger nats create update-ingress  --namespace kubeless --function-selector created-by=kubeless,function=update-ingress --trigger-topic k8s_replicas
-```
-
-## Deploy Web Rescaler pod
-
-A webserver pod is deployed in downscaled Namespaces to provide website to restore the initial number of replica.
-
-Execute the follwing command line to deploy the function that handle the `web-rescaler` pod on events publish on the `k8s_ingresses` NAT topic.
-
-```bash
-kubeless function deploy web-rescaler --namespace kubeless --runtime python3.6 --handler web-rescaler.create --from-file functions/web-rescaler.py --dependencies functions/web-requirements.txt && \
-kubectl apply -n kubeless -f manifests/kubeless-ingress-manage-rbac.yaml && \
-kubectl -n kubeless patch deployment web-rescaler -p '{"spec":{"template":{"spec":{"serviceAccountName":"kubeless-deployment-manage"}}}}'
-```
-
-```bash
-kubeless trigger nats create web-rescaler --namespace kubeless --function-selector created-by=kubeless,function=web-rescaler --trigger-topic k8s_ingresses
-```
-
-Execute the following command to create a `trigger` that run the `function` on NATS events.
 
 ## Test environment
 
