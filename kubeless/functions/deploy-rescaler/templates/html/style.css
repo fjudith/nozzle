@@ -1,0 +1,132 @@
+:root {
+    --background-color: #000000;
+    --input-border-color: #121212;
+    --surface-color: #151515;
+    --primary-color: #BB86FC;
+    --primary-variant-color: #3700B3;
+    --secondary-color: #03DAC6;
+    --secondary-hover-color: #018786;
+    --error-color: #CF6679;
+    --on-primary-color: #000000;
+    --on-secondary-color: #000000;
+    --primary-font-color: #ffffff;
+    --text-box-bg-color: #111111;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6
+select {
+    color: var(--title-color);
+    opacity: 0.38;
+}
+
+input[type=text],
+select {
+    background-color: var(--text-box-bg-color);
+    font-size: medium;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--input-border-color);
+    border-radius: 4px;
+    resize: vertical;
+}
+
+input[type=text]:read-only,
+select {
+    background-color: var(--text-box-bg-color);
+    font-size: medium;
+    color: var(--primary-font-color);
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--input-border-color);
+    border-radius: 4px;
+    resize: vertical;
+}
+
+div[id=output],
+select {
+    background-color: var(--text-box-bg-color);
+    color: var(--primary-font-color);
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--input-border-color);
+    border-radius: 4px;
+    resize: vertical;
+    white-space: pre-wrap;
+}
+
+input[type=submit] {
+    background-color: var(--secondary-color);
+    color: black;
+    font-size: small;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    float: right;
+    margin: 10px;
+}
+
+input[type=submit] {
+    background-color: var(--secondary-color);
+    color: black;
+    font-size: medium;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    float: right;
+}
+
+input[type=submit]:hover {
+    background-color: var(--secondary-hover-color);
+}
+
+.container {
+    border-radius: 5px;
+    margin: 10px;
+    background-color: var(--surface-color);
+    padding: 20px;
+}
+
+.col-25 {
+    float: left;
+    width: 25%;
+    margin-top: 6px;
+}
+
+.col-75 {
+    float: left;
+    width: 75%;
+    margin-top: 6px;
+}
+
+
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Responsive layout - when the screen is less than 600px wide, make the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+
+    .col-25,
+    .col-75,
+    input[type=submit] {
+        width: 100%;
+        margin-top: 0;
+    }
+}
+
+body {
+    background-color: var(--background-color);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: medium;
+    color: var(--primary-font-color);
+    opacity: 0.87;
+}
