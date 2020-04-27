@@ -44,19 +44,19 @@ The project has been design using the following requirements to ensure the produ
   <tr align='center'>
     <th align='center'>Serverless</th>
     <td align='center'><img src='docs/media/openfaas.png' width="50px"></td>
-    <td align='center'><a ref='./openfaas'>OpenFaaS<a></td>
+    <td align='center'><a ref='./openfaas/'>OpenFaaS<a></td>
     <td align='center'>stable</td>
   </tr>
   <tr align='center'>
     <th align='center'>Serverless</th>
     <td align='center'><img src='docs/media/fission.png' width="50px"></td>
-    <td align='center'><a ref='./fission'>Fission<a></td>
+    <td align='center'><a ref='./fission/'>Fission<a></td>
     <td align='center'>alpha</td>
   </tr>
   <tr align='center'>
     <th align='center'>Binary</th>
     <td align='center'><img src='docs/media/gopher.png' width="30px"></td>
-    <td align='center'><a ref='./golang'>Golang<a></td>
+    <td align='center'><a ref='./golang/'>Golang<a></td>
     <td align='center'>not started</td>
   </tr>
 </table>
@@ -96,23 +96,3 @@ This last picture shows the resource consumtion after noozle downscaled the appl
 
 * **Replicas JSON**: `{"namespace": str, "name": str, "kind": str, "replicas": int, "selector": { dict }}`
 * **Ingress JSON**: `{"namespace": str, "name": str, "rules": { dict }}`
-
-## Implementations
-
-Following the project progress the following plateforms were implemented to compare their own sustainability.
-
-### Kubeless
-
-Serverless implementation based on Python3, Kubeless and NATS.
-
-### OpenFaaS
-
-Serverless implementation based on Python3, OpenFaaS and NATS.
-
-### Fission
-
-Serverless implementation based on Python3, Fission and NATS Streaming.
-
-### Golang
-
-Native Kubernetes implementation based on a Custom Controller written and Go `1.13.x`.
