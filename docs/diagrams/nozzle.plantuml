@@ -61,7 +61,7 @@ activate "nats"
 
 "downscale-replicas" -> "nats": Subscribe **k8s_replicas** topic
 "update-ingress" -> "nats": Subscribe **k8s_replicas** topic
-"deploy-rescaler" -> "nats": Subscribe **k8s_replicas** topic
+"deploy-rescaler" -> "nats": Subscribe **k8s_ingresses** topic
 
 "nats" --> "downscale-replicas": Json
 "downscale-replicas" -> "kubernetes": Backup current config. & downscale
@@ -78,20 +78,8 @@ end note
 "kubernetes" -> "app": Downscale resources replicas
 
 
-"nats" --> "deploy-rescaler": Json
-"deploy-rescaler" -> "kubernetes": Deploy the website to restore replicas
-activate "rescaler"
-note left
-  Create a **configmap** resource containing the static code.
-  Create a **deployment** that a ""nginx-alpine"" image consumming the **configmap**
-  Create a **service** to expose the **deployment**
-end note
-"kubernetes" -> "rescaler": Run & expose
-
 "nats" --> "update-ingress": Json
 "update-ingress" -> "kubernetes": Backup current config. & re-route
-deactivate "nats"
-deactivate "kubernetes"
 note left
   List ingress resources in the namespace
   Create an annotation **rules.nozzle.io/last-known-configuration**
@@ -101,6 +89,19 @@ note left
   Change rules to point to the ""rescaler"" service
   located in same namespace
 end note
+"update-ingress" -> "nats": Publish modded ingress rules
+
+"nats" --> "deploy-rescaler": Json
+"deploy-rescaler" -> "kubernetes": Deploy the website to restore replicas
+activate "rescaler"
+note left
+  Create a **configmap** resource containing the static code.
+  Create a **deployment** that a ""nginx-alpine"" image consumming the **configmap**
+  Create a **service** to expose the **deployment**
+end note
+"kubernetes" -> "rescaler": Run & expose
+deactivate "nats"
+deactivate "kubernetes"
 
 "user" -> "rescaler": Request to restore the workload
 
