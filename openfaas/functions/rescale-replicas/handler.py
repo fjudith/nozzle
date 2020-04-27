@@ -55,7 +55,7 @@ def rescaleStatefulset(payload):
         else:
             next
 
-        logger.info("Restoring replicas of Statefulset (sts) Name: %s to %s from Annotation: %" % (statefulset.metadata.name, json.dumps(replicas), source_annotation))
+        logger.info("Restoring replicas of Statefulset (sts) Name: %s to %s from Annotation: %s" % (statefulset.metadata.name, json.dumps(replicas), source_annotation))
         
         body={'spec':{'replicas': replicas}}
         
@@ -77,29 +77,29 @@ def rescaleDeployment(payload):
     deployments = AppsV1Api.list_namespaced_deployment(namespace=payload['namespace'], pretty=args.pretty)
 
     for deployment in deployments.items:
+        if not deployment.metadata.name == args.rescaler:
+            if "replicas.nozzle.io/last-known-configuration" in deployment.metadata.annotations:
+                source_annotation = "replicas.nozzle.io/last-known-configuration"
+                replicas = json.loads(deployment.metadata.annotations[source_annotation])
+            elif "kubectl.kubernetes.io/last-applied-configuration" in deployment.metadata.annotations:
+                source_annotation = "kubectl.kubernetes.io/last-applied-configuration"
+                replicas = json.loads(deployment.metadata.annotations[source_annotation])['spec']['replicas']
+            else:
+                next
 
-        if "replicas.nozzle.io/last-known-configuration" in deployment.metadata.annotations:
-            source_annotation = "replicas.nozzle.io/last-known-configuration"
-            replicas = json.loads(deployment.metadata.annotations[source_annotation])
-        elif "kubectl.kubernetes.io/last-applied-configuration" in deployment.metadata.annotations:
-            source_annotation = "kubectl.kubernetes.io/last-applied-configuration"
-            replicas = json.loads(deployment.metadata.annotations[source_annotation])['spec']['replicas']
-        else:
-            next
+            logger.info("Restoring replicas of Deployment (deploy) Name: %s to %s from Annotation: %s" % (deployment.metadata.name, json.dumps(replicas), source_annotation))
+            
+            body={'spec':{'replicas': replicas}}
+            
+            try:
+                logger.debug("Patch specifications: %s" %(json.loads(json.dumps(body))))
+                api_response = AppsV1Api.patch_namespaced_deployment_scale(name=deployment.metadata.name, namespace=payload['namespace'], body=body, pretty=args.pretty)
 
-        logger.info("Restoring replicas of Deployment (deploy) Name: %s to %s from Annotation: %s" % (deployment.metadata.name, json.dumps(replicas), source_annotation))
-        
-        body={'spec':{'replicas': replicas}}
-        
-        try:
-            logger.debug("Patch specifications: %s" %(json.loads(json.dumps(body))))
-            api_response = AppsV1Api.patch_namespaced_deployment_scale(name=deployment.metadata.name, namespace=payload['namespace'], body=body, pretty=args.pretty)
-
-        except ApiException as e:
-            print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
-            print(payload.keys())
-            print(type(payload))
-            print(str(payload))
+            except ApiException as e:
+                print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
+                print(payload.keys())
+                print(type(payload))
+                print(str(payload))
 
 def restoreIngress(payload):
     # Client to manage Ingress resources
