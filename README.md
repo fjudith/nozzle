@@ -61,7 +61,7 @@ The project has been design using the following requirements to ensure the produ
   </tr>
 </table>
 
-### Screeshots
+### Screenshots
 
 The follwing screeshots show the Nozzle impact on the [microservices-demo](https://microservices-demo.github.io) from [Weaveworks](https://www.weave.works), which by default supports 14 microservices.
 
