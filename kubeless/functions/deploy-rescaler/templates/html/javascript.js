@@ -1,7 +1,7 @@
 "use strict";
 window.addEventListener("load", function () {
     function sendData() {
-        var path = "/function/rescale-replicas"
+        var path = "/"
 
         const XHR = new XMLHttpRequest();
 

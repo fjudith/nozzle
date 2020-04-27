@@ -67,7 +67,7 @@ def service(req):
     namespace = req['namespace']
 
      # Instantiate the Service object
-    with open("./templates/manifests/rescaler-service.json") as f:
+    with open("./function/templates/manifests/rescaler-service.json") as f:
         json_data = json.loads(f.read())
 
         manifest = json.loads(Template(json.dumps(json_data)).render(namespace=namespace))
@@ -84,7 +84,7 @@ def deployment(req):
     namespace = req['namespace']
     
     # Instantiate the Deployment object
-    with open("./templates/manifests/rescaler-deployment.json") as f:
+    with open("./function/templates/manifests/rescaler-deployment.json") as f:
         json_data = json.loads(f.read())
 
         manifest = json.loads(Template(json.dumps(json_data)).render(namespace=namespace))
@@ -102,17 +102,17 @@ def configmap(req):
     name      = req['name']
     host      = req['rules'][0]['host']
 
-    index_html_template = Template(filename='./templates/html/index.html')
+    index_html_template = Template(filename='./function/templates/html/index.html')
     index_html = (index_html_template.render(namespace=namespace,host=host,name=name))
 
-    javascript_template = Template(filename='./templates/html/javascript.js')
+    javascript_template = Template(filename='./function/templates/html/javascript.js')
     javascript = (javascript_template.render(namespace=namespace,host=host,name=name))
 
-    stylesheet_template = Template(filename='./templates/html/style.css')
+    stylesheet_template = Template(filename='./function/templates/html/style.css')
     stylesheet = (stylesheet_template.render(namespace=namespace,host=host,name=name))
 
 
-    default_config_template = Template(filename='./templates/nginx/default.conf')
+    default_config_template = Template(filename='./function/templates/nginx/default.conf')
     default_config = (default_config_template.render(trigger_url=args.trigger_url))
     
 
@@ -130,20 +130,17 @@ def configmap(req):
         "data": {"index.html": index_html, "javascript.js": javascript, "style.css": stylesheet, "default.conf": default_config},
     }
 
-
     with _pass_conflicts():
         api_response = CoreV1Api.create_namespaced_config_map(namespace=namespace, body=manifest, pretty=args.pretty)
         logger.info("Created Configmap name: %s Namespace: %s" % (api_response.metadata.name, api_response.metadata.namespace))     
 
 
 def handle(event, context):
-    logger.info("Current Directory: %s" % (os.getcwd()))  
-
     payload = (event)['data']
     configmap(payload)
     service(payload)
     deployment(payload)
-    
+   
 
 if __name__ == '__main__':
     event = {"data": {"namespace": "demo", "name": "frontend", "rules": [{"host": "shop.weavelab.io", "http": {"paths": [{"backend": {"serviceName": "frontend", "servicePort": 80}, "path": "/"}]}}]}}

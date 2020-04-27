@@ -14,18 +14,18 @@ USER root
 
 RUN mkdir -p /kubeless /function
 
-# Rescaler function
-COPY ./handler.py /
+# Install required dependencies
 COPY ./requirements.txt /kubeless/
+RUN pip install --prefix=${KUBELESS_INSTALL_VOLUME} -r ${KUBELESS_DEPS_FILE}
 
 # Rescaler Website pod specification and static content
 COPY ./templates        /function/templates
 
-# Install required dependencies
-RUN pip install --prefix=${KUBELESS_INSTALL_VOLUME} -r ${KUBELESS_DEPS_FILE} && \
-    chown -R 1000:1000 /handler.py /kubeless /function && \
-    chmod 644 /handler.py /kubeless/requirements.txt
+# Rescaler function
+COPY ./handler.py /kubeless/
+
+# Enforce permissions
+RUN chown -R 1000:1000 /kubeless /function && \
+    chmod 644 /kubeless/handler.py /kubeless/requirements.txt
 
 USER 1000
-
-ENTRYPOINT [ "/bin/bash", "-c", "cp /handler.py /kubeless/ && python /kubeless.py" ]
