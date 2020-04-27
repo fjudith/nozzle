@@ -1,7 +1,7 @@
 "use strict";
 window.addEventListener("load", function () {
     function sendData() {
-        var path = "/function/rescale-replicas.openfaas-fn"
+        var path = "/trigger"
 
         const XHR = new XMLHttpRequest();
 
