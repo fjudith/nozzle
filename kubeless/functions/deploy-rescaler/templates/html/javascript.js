@@ -1,7 +1,7 @@
 "use strict";
 window.addEventListener("load", function () {
     function sendData() {
-        var path = "/"
+        var path = "/trigger"
 
         const XHR = new XMLHttpRequest();
 
@@ -22,7 +22,7 @@ window.addEventListener("load", function () {
         // Set up our request
         XHR.open("POST", path);
 
-        XHR.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        XHR.setRequestHeader("Content-Type", "application/json");
         var json = {};
         for (const [key, value] of FD.entries()) {
             json[key] = value;

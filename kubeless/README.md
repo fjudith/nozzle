@@ -107,7 +107,7 @@ kubeless function deploy deploy-rescaler \
   --runtime python3.6 \
   --runtime-image docker.io/fjudith/deploy-rescaler:kubeless-python3.6 \
   --handler handler.handle \
-  --env TRIGGER_URL='http://rescale-replicas.kubeless:8080' && \
+  --env TRIGGER_URL='http://rescale-replicas.kubeless.svc.cluster.local:8080' && \
 kubectl -n kubeless patch deployment deploy-rescaler -p '{"spec":{"template":{"spec":{"serviceAccountName":"kubeless-deployment-manage"}}}}'
 ```
 
