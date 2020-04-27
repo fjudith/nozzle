@@ -6,7 +6,7 @@ provider:
 functions:
   publish-resources:
     lang: python3
-    handler: ./publish-resources
+    handler: ./functions/publish-resources
     image: docker.io/fjudith/publish-resources:openfaas
     constraints:
      - "node.platform.os == linux"
@@ -21,7 +21,7 @@ functions:
 
   downscale-replicas:
     lang: python3
-    handler: ./downscale-replicas
+    handler: ./functions/downscale-replicas
     image: docker.io/fjudith/downscale-replicas:openfaas
     constraints:
      - "node.platform.os == linux"
@@ -33,7 +33,7 @@ functions:
 
   update-ingress:
     lang: python3
-    handler: ./update-ingress
+    handler: ./functions/update-ingress
     image: docker.io/fjudith/update-ingress:openfaas
     constraints:
      - "node.platform.os == linux"
@@ -45,7 +45,7 @@ functions:
   
   deploy-rescaler:
     lang: python3
-    handler: ./deploy-rescaler
+    handler: ./functions/deploy-rescaler
     image: docker.io/fjudith/deploy-rescaler:openfaas
     constraints:
      - "node.platform.os == linux"
@@ -57,7 +57,7 @@ functions:
 
   rescale-replicas:
     lang: python3
-    handler: ./rescale-replicas
+    handler: ./functions/rescale-replicas
     image: docker.io/fjudith/rescale-replicas:openfaas
     constraints:
      - "node.platform.os == linux"
