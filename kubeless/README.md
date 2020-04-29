@@ -1,6 +1,6 @@
 # Nozzle
 
-This document show you how to deploy Nozzle in a Kubernetes cluster running the Kubeless serverless platform.
+This document demonstrates how to deploy Nozzle in a Kubernetes cluster running the Kubeless serverless platform.
 
 Serverless is a particular kind of microservices architecture that splits services into ephemeral functions to enhance observability and cost efficiency.
 Serverless platforms are orchestration tools to efficiently run the code when it is required. To acheive this they support a set of trigger to react on events like HTTP requests, scheduled jobs, message queue publishing, etc.
