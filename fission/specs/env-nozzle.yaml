@@ -23,5 +23,5 @@ spec:
         - name: RESCALER_NAME
           value: rescaler
         - name: TRIGGER_URL
-          value: http://router.fission.svc.cluster.local
+          value: "http://router.fission.svc.cluster.local"
   version: 3
