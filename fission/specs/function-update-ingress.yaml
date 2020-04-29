@@ -1,0 +1,54 @@
+include:
+- functions/update-ingress/*
+kind: ArchiveUploadSpec
+name: functions-update-ingress-6arc
+
+---
+apiVersion: fission.io/v1
+kind: Package
+metadata:
+  creationTimestamp: null
+  name: update-ingress-f34cf600-b0f2-4eaf-b331-876b4775a8fe
+  namespace: default
+spec:
+  deployment:
+    checksum: {}
+  environment:
+    name: nozzle
+    namespace: default
+  source:
+    checksum: {}
+    type: url
+    url: archive://functions-update-ingress-6arc
+status:
+  buildstatus: pending
+  lastUpdateTimestamp: "2020-04-29T18:48:49.0761687Z"
+
+---
+apiVersion: fission.io/v1
+kind: Function
+metadata:
+  creationTimestamp: null
+  name: update-ingress
+  namespace: default
+spec:
+  InvokeStrategy:
+    ExecutionStrategy:
+      ExecutorType: poolmgr
+      MaxScale: 0
+      MinScale: 0
+      SpecializationTimeout: 120
+      TargetCPUPercent: 0
+    StrategyType: execution
+  configmaps: null
+  environment:
+    name: nozzle
+    namespace: default
+  functionTimeout: 60
+  package:
+    functionName: handler.handle
+    packageref:
+      name: update-ingress-f34cf600-b0f2-4eaf-b331-876b4775a8fe
+      namespace: default
+  resources: {}
+  secrets: null

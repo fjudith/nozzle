@@ -1,0 +1,29 @@
+{
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+        "labels": {
+            "app": "rescaler",
+            "tier": "web"
+        },
+        "name": "rescaler",
+        "namespace": "${namespace}"
+    },
+    "spec": {
+        "clusterIP": "None",
+        "ports": [
+            {
+                "name": "web",
+                "port": 3000,
+                "protocol": "TCP",
+                "targetPort": 80
+            }
+        ],
+        "selector": {
+            "app": "rescaler",
+            "tier": "web"
+        },
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+    }
+}

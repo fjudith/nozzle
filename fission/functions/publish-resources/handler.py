@@ -30,8 +30,6 @@ parser.add_argument('--reconnect-time-wait', help="How long to wait between reco
 parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
 args = parser.parse_args()
 
-print(args.nats_address)
-
 logger = logging.getLogger('script')
 ch = logging.StreamHandler()
 if args.debug:
