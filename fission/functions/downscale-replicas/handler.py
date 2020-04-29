@@ -81,7 +81,7 @@ def handle():
             api_response = AppsV1Api.patch_namespaced_deployment_scale(name=payload['name'], namespace=payload['namespace'], body=body, pretty=args.pretty)
             logger.info("Patched number of replicas of Deployment (deploy) Name: %s to %s" % (deployment.metadata.name, args.max_deployment))
             
-            output['data'].append({'namespace': deployment.metadata.namespace, 'name': deployment.metadata.name, 'spec': body.['spec'] })
+            output['data'].append({'namespace': deployment.metadata.namespace, 'name': deployment.metadata.name, 'spec': body['spec'] })
         except ApiException as e:
             print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
             print(payload.keys())
