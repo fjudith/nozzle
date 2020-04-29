@@ -1,0 +1,16 @@
+apiVersion: fission.io/v1
+kind: MessageQueueTrigger
+metadata:
+  creationTimestamp: null
+  name: downscale-replicas
+  namespace: default
+spec:
+  contentType: application/json
+  errorTopic: ""
+  functionref:
+    functionweights: null
+    name: downscale-replicas
+    type: name
+  maxRetries: 0
+  messageQueueType: nats-streaming
+  topic: k8s_replicas

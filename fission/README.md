@@ -6,6 +6,8 @@ This document demonstrates how to deploy Nozzle in a Kubernetes cluster running 
 Serverless is a particular kind of microservices architecture that splits services into ephemeral functions to enhance observability and cost efficiency.
 Serverless platforms are orchestration tools to efficiently run the code when it is required. To acheive this they support a set of trigger to react on events like HTTP requests, scheduled jobs, message queue publishing, etc.
 
+> **Warning**: The functions code has been ported from Openfaas and modified for Fission for the NATS Streaming instance.
+
 ## Pre-requesits
 
 Fission requires you to install the [Fission client](https://github.com/fission/fission/releases) in order to deploy the various objects (functions, triggers, routes, etc.)
@@ -61,7 +63,7 @@ fission function create \
 The `downscale-replicas` function receives messages pushed by the `publish-resources` function to perform the backup and scale down of the resource specified in each message.
 The function is triggered by Kubeless using the publish-subribe mechanism leveraging the [NATS Streamin trigger](https://docs.fission.io/docs/triggers/message-queue-trigger/nats-streaming/).
 
-> **Note**: Kubeless pre-serialize message in JSON format for functions
+> **Note**: Fission pre-serialize message in JSON format to functions
 
 ```bash
 fission function create \
@@ -75,7 +77,47 @@ fission function create \
 Execute the following command to create a `trigger` that run the `downscale-resources` function on NATS Streaming publish events.
 
 ```bash
-fission mqtrigger create --name downscale-replicas --function downscale-replicas --mqtype='nats-streaming' --topic 'k8s_replicas'
+fission mqtrigger create --name downscale-replicas --function downscale-replicas --mqtype='nats-streaming' --topic 'k8s_replicas' --spec
+```
+
+### Update-Ingress
+
+The `update-ingress` function receives messages pushed by the `publish-resources` function to perform the backup and modification of the ingress rules associated to deployment or statefulset resources.
+The function is triggered by Kubeless using the publish-subsribe mechanism leveraging the [NATS Streamin trigger](https://docs.fission.io/docs/triggers/message-queue-trigger/nats-streaming/).
+
+```bash
+fission function create \
+  --env "nozzle" \
+  --name "update-ingress" \
+  --src "functions/update-ingress/*" \
+  --entrypoint "handler.handle" \
+  --spec
+```
+
+Execute the following command to create a `trigger` that run the `downscale-resources` function on NATS Streaming publish events.
+
+```bash
+fission mqtrigger create --name update-ingress --function update-ingress --mqtype='nats-streaming' --topic 'k8s_replicas' --spec
+```
+
+### Deploy-Rescaler
+
+The `deploy-rescaler` function receives messages pushed by the `publish-resources` function to inject the `rescaler` website inside the namespace associeted with either deployment and statefulset resources.
+The function is triggered by Kubeless using the publish-subscribe mechanism leveraging the [NATS Streamin trigger](https://docs.fission.io/docs/triggers/message-queue-trigger/nats-streaming/).
+
+```bash
+fission function create \
+  --env "nozzle" \
+  --name "deploy-rescaler" \
+  --src "functions/deploy-rescaler/*" \
+  --entrypoint "handler.handle" \
+  --spec
+```
+
+Execute the following command to create a `trigger` that run the `downscale-resources` function on NATS Streaming publish events.
+
+```bash
+fission mqtrigger create --name deploy-rescaler --function deploy-rescaler --mqtype='nats-streaming' --topic 'k8s_ingresses' --spec
 ```
 
 ---
@@ -86,6 +128,17 @@ fission mqtrigger create --name downscale-replicas --function downscale-replicas
 fission function delete --name publish-resources
 
 ```
+
+## Test environment
+
+Scripts are validated on the using the following environment.
+
+* [Kubernetes](https://github.com/kubernetes/kubernetes): `v1.16.3`
+* [Nats operator](https://github.com/nats-io/nats-operator): `v0.6.0`
+* [Nats cluster](https://github.com/nats-io/nats-server): `v2.1.2`
+* [Nats Streaming operator](https://github.com/nats-io/nats-streaming-operator): `v0.3.0`
+* [Nats Streaming cluster](https://github.com/nats-io/nats-server): `v0.17.0`
+* [Kubefwd](https://github.com/txn2/kubefwd): `1.11.1`
 
 ## Reference
 

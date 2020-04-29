@@ -22,4 +22,6 @@ spec:
           value: "nats://defaultFissionAuthToken@nats-streaming.fission:4222"
         - name: RESCALER_NAME
           value: rescaler
+        - name: TRIGGER_URL
+          value: http://router.fission.svc.cluster.local
   version: 3
