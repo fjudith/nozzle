@@ -17,7 +17,7 @@ from mako.template import Template
 
 parser = argparse.ArgumentParser()
 # Function related argument
-parser.add_argument('-t', '--trigger-url', help="URL of the OpenFaaS gateway service", default=os.environ.get('TRIGGER_URL', None))
+parser.add_argument('-t', '--trigger-url', help="URL of the HTTP trigger", default=os.environ.get('TRIGGER_URL', None))
 # Kubernetes related arguments
 parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
