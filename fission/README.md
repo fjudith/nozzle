@@ -120,13 +120,30 @@ Execute the following command to create a `trigger` that run the `downscale-reso
 fission mqtrigger create --name deploy-rescaler --function deploy-rescaler --mqtype='nats-streaming' --topic 'k8s_ingresses' --spec
 ```
 
----
+## Rescale-Replicas
+
+The `rescale-replicas` function receives message posted by the `rescaler` website pod to restore amount of replicas that were reduced by the `downscale-replicas` function. It also restore the ingress rules modified by the `update-ingress` function.
+The function is triggered by Kubeless using the remote procedure call mechanism leveraging the [HTTP Trigger](https://kubeless.io/docs/http-triggers/)
+
+```bash
+fission function create \
+  --env "nozzle" \
+  --name "rescale-replicas" \
+  --src "functions/rescale-replicas/*" \
+  --entrypoint "handler.handle" \
+  --spec
+```
+
+## Deploy Generated specs
+
+```bash
+fission spec apply --wait
+```
 
 ## Teardown
 
 ```bash
-fission function delete --name publish-resources
-
+fission spec destroy
 ```
 
 ## Test environment
