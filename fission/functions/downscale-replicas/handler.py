@@ -10,7 +10,6 @@ from kubernetes import client, config, watch
 from kubernetes.client.rest import ApiException
 
 from flask import request
-from flask import current_app
 
 output = {"data":[]}
 
