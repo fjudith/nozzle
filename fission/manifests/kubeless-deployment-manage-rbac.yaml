@@ -5,7 +5,7 @@ metadata:
     app: fission
     group: io.fission.k8s.management
   name:  fission-deployment-manage
-  namespace: fission-funtion
+  namespace: fission-function
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -14,7 +14,7 @@ metadata:
     app: fission
     group: io.fission.k8s.management
   name: fission-deployment-manage-role-binding
-  namespace: fission-funtion
+  namespace: fission-function
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -22,7 +22,10 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: fission-deployment-manage
-    namespace: fission-funtion
+    namespace: fission-function
+  - kind: ServiceAccount
+    name: fission-fetcher
+    namespace: fission-function
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

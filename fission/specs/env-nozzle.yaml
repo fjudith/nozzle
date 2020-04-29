@@ -1,0 +1,25 @@
+apiVersion: fission.io/v1
+kind: Environment
+metadata:
+  creationTimestamp: null
+  name: nozzle
+  namespace: default
+spec:
+  builder:
+    command: build
+    image: fission/python-builder:latest
+  imagepullsecret: ""
+  keeparchive: false
+  poolsize: 3
+  resources: {}
+  runtime:
+    image: fission/python-env:latest
+    podspec:
+      containers:
+      - name: nozzle
+        env:
+        - name: NATS_ADDRESS
+          value: nats://nats-cluster.nats-io:4222
+        - name: RESCALER_NAME
+          value: rescaler
+  version: 3
