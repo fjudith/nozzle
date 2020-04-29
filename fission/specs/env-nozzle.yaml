@@ -19,7 +19,7 @@ spec:
       - name: nozzle
         env:
         - name: NATS_ADDRESS
-          value: nats://nats-cluster.nats-io:4222
+          value: "nats://defaultFissionAuthToken@nats-streaming.fission:4222"
         - name: RESCALER_NAME
           value: rescaler
   version: 3

@@ -53,8 +53,29 @@ fission function create \
   --name "publish-resources" \
   --src "functions/publish-resources/*" \
   --entrypoint "handler.handle" \
-  --method "POST" \
   --spec
+```
+
+### Downscale-Replicas
+
+The `downscale-replicas` function receives messages pushed by the `publish-resources` function to perform the backup and scale down of the resource specified in each message.
+The function is triggered by Kubeless using the publish-subribe mechanism leveraging the [NATS Streamin trigger](https://docs.fission.io/docs/triggers/message-queue-trigger/nats-streaming/).
+
+> **Note**: Kubeless pre-serialize message in JSON format for functions
+
+```bash
+fission function create \
+  --env "nozzle" \
+  --name "downscale-replicas" \
+  --src "functions/downscale-replicas/*" \
+  --entrypoint "handler.handle" \
+  --spec
+```
+
+Execute the following command to create a `trigger` that run the `downscale-resources` function on NATS Streaming publish events.
+
+```bash
+fission mqtrigger create --name downscale-replicas --function downscale-replicas --mqtype='nats-streaming' --topic 'k8s_replicas'
 ```
 
 ---

@@ -10,9 +10,7 @@ from kubernetes import client, config, watch
 
 from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
-
-from flask import request
-from flask import current_app
+from stan.aio.client import Client as STAN
 
 output = {"data":[]}
 
@@ -24,13 +22,15 @@ parser.add_argument('-x', '--exclude', help="Name of the Rescaler deployment", d
 parser.add_argument('-l', '--selector', help="Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)", default='nozzle=true')
 parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
 # NATS related arguments
-parser.add_argument('-a', '--nats-address', help="Address of nats cluster", default=os.environ.get('NATS_ADDRESS', None))
+parser.add_argument('-a', '--nats-address', help="Address of the nats streaming cluster", default=os.environ.get('NATS_ADDRESS', None))
 parser.add_argument('--connect-timeout', help="NATS connect timeout (s)", type=int, default=10, dest='conn_timeout')
 parser.add_argument('--max-reconnect-attempts', help="Number of times to attempt reconnect", type=int, default=5, dest='conn_attempts')
 parser.add_argument('--reconnect-time-wait', help="How long to wait between reconnect attempts", type=int, default=1, dest='conn_wait')
 # Logger arguments
 parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
 args = parser.parse_args()
+
+print(args.nats_address)
 
 logger = logging.getLogger('script')
 ch = logging.StreamHandler()
@@ -67,23 +67,35 @@ async def publish(loop):
     # Client to list Deployments and StatefulSets
     AppsV1Api = client.AppsV1Api()
 
-    # client publish to NATS
+    # Use borrowed connection for NATS then mount NATS Streaming
+    # client on top.
     nc = NATS()
+
+    # Start session with NATS Streaming cluster.
+    sc = STAN()
     
     try:
         await nc.connect(servers=[args.nats_address], loop=loop, connect_timeout=args.conn_timeout, max_reconnect_attempts=args.conn_attempts, reconnect_time_wait=args.conn_wait)
+        await sc.connect("fissionMQTrigger", "publish-resources", nats=nc)
     except ErrNoServers as e:
         # Could not connect to any server in the cluster.
         print(e)
         return
 
+    total_messages = 0
+    future = asyncio.Future(loop=loop)
     async def message_handler(msg):
+        nonlocal future
+        nonlocal total_messages
         subject = msg.subject
         reply = msg.reply
         data = msg.data.decode()
         print ("Received a message on '{subject} {reply}': {data}".format(
             subject=subject, reply=reply, data=data
         ))
+        total_messages += 1
+        if total_messages >= 2:
+            future.set_result(None)
             
     # Simple publisher and async subscriber via coroutine.
     sid = await nc.subscribe(args.topic, cb=message_handler)
@@ -98,8 +110,8 @@ async def publish(loop):
                 
                 if deploy.spec.replicas > 0 and not deploy.metadata.name == args.exclude:
                     try:
-                        await nc.publish(args.topic, json.dumps(msg).encode('utf-8'))
-                        await nc.flush(0.500)
+                        await sc.publish(args.topic, json.dumps(msg).encode('utf-8'))
+                        
                         output['data'].append(msg)
                     except ErrConnectionClosed as e:
                         print("Connection closed prematurely.")
@@ -118,8 +130,8 @@ async def publish(loop):
                 
                 if sts.spec.replicas > 1:
                     try:
-                        await nc.publish(args.topic, json.dumps(msg).encode('utf-8'))
-                        await nc.flush(0.500)
+                        await sc.publish(args.topic, json.dumps(msg).encode('utf-8'))
+                        
                         output['data'].append(msg)
                     except ErrConnectionClosed as e:
                         print("Connection closed prematurely.")
@@ -132,8 +144,12 @@ async def publish(loop):
         get_deployments(),
         get_statefulsets()
     )
-    await nc.drain()
 
+    # Close NATS Streaming session
+    await sc.close()
+
+    # We are using a NATS borrowed connection so we need to close manually.
+    await nc.close()
 
 
 def handle():
