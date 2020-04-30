@@ -10,7 +10,7 @@ spec:
     image: fission/python-builder:latest
   imagepullsecret: ""
   keeparchive: false
-  poolsize: 3
+  poolsize: 5
   resources: {}
   runtime:
     image: fission/python-env:latest
