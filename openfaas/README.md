@@ -5,6 +5,8 @@ This document show you how to deploy Nozzle in a Kubernetes cluster running the 
 Serverless is a particular kind of microservices architecture that splits services into ephemeral functions to enhance observability and cost efficiency.
 Serverless platforms are orchestration tools to efficiently run the code when it is required. To acheive this they support a set of trigger to react on events like HTTP requests, scheduled jobs, message queue publishing, etc.
 
+![architecture](./Nozzle_v3.0.0.png)
+
 ## Pre-requesits
 
 OpenFaaS requires you to install Docker or a Continous Integration platform to build Docker images that will be used to execute functions.
@@ -20,7 +22,7 @@ git clone https://github.com/fjudith/nozzle
 cd nozzle/openfaas
 ```
 
-## nozzle Stack deployment
+## Nozzle Stack deployment
 
 This topic covers the build, release and deployment of the Nozzle functions inside the Kubernetes cluster.
 
