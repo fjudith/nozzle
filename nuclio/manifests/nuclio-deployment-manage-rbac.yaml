@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: nuclio
+    group: io.nuclio.k8s.management
+  name:  nuclio-deployment-manage
+  namespace: nuclio
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: nuclio
+    group: io.nuclio.k8s.management
+  name: nuclio-deployment-manage-role-binding
+  namespace: nuclio
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: nuclio-deployment-manage-role
+subjects:
+  - kind: ServiceAccount
+    name: nuclio-deployment-manage
+    namespace: nuclio
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: nuclio
+    group: io.nuclio.k8s.management
+  name: nuclio-deployment-manage-role
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps","services"]
+    verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - update
+      - patch
+  - apiGroups:
+      - extensions
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - create
+      - patch
+      - update
+      - delete
+

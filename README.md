@@ -56,6 +56,12 @@ The project has been design using the following requirements to ensure the produ
     <td align='center'>stable</td>
   </tr>
   <tr align='center'>
+    <th align='center'>Serverless</th>
+    <td align='center'><img src='docs/media/nuclio.png' width="50px"></td>
+    <td align='center'><a ref='https://nuclio.io'>Nuclio<a></td>
+    <td align='center'>stable</td>
+  </tr>
+  <tr align='center'>
     <th align='center'>Binary</th>
     <td align='center'><img src='docs/media/gopher.png' width="30px"></td>
     <td align='center'><a ref='https://golang.org'>Golang<a></td>

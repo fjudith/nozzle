@@ -22,7 +22,7 @@ cd nozzle/fission
 ## Manifests
 
 The [manifests](./manifests/) directory contains the required [RBAC and ServiceAccounts](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) enabling each function to interact with the Kubernetes API.
-It also contain an application running 3 replicas of the [nginx-alpine](https://hub.docker.com/r/amd64/nginx) image in the form of Deployment and Statefulset to demonstrate du Nozzle concept.
+It also contain an application running 3 replicas of the [nginx-alpine](https://hub.docker.com/r/amd64/nginx) image in the form of Deployment and Statefulset to demonstrate Nozzle concepts.
 
 ```bash
 kubectl apply -f manifests/
@@ -103,7 +103,7 @@ fission mqtrigger create --name update-ingress --function update-ingress --mqtyp
 ### Deploy-Rescaler
 
 The `deploy-rescaler` function receives messages pushed by the `publish-resources` function to inject the `rescaler` website inside the namespace associeted with either deployment and statefulset resources.
-The function is triggered by Kubeless using the publish-subscribe mechanism leveraging the [NATS Streamin trigger](https://docs.fission.io/docs/triggers/message-queue-trigger/nats-streaming/).
+The function is triggered by Kubeless using the publish-subscribe mechanism leveraging the [NATS Streaming trigger](https://docs.fission.io/docs/triggers/message-queue-trigger/nats-streaming/).
 
 ```bash
 fission function create \

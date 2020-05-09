@@ -13,9 +13,6 @@ from kubernetes.client.rest import ApiException
 
 from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
-from stan.aio.client import Client as STAN
-
-from flask import request
 
 output = {"data":[]}
 
@@ -32,7 +29,7 @@ parser.add_argument('--max-reconnect-attempts', help="Number of times to attempt
 parser.add_argument('--reconnect-time-wait', help="How long to wait between reconnect attempts", type=int, default=1, dest='conn_wait')
 # Logger arguments
 parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 logger = logging.getLogger('script')
 ch = logging.StreamHandler()
@@ -59,8 +56,8 @@ else:
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
-def handle():
-    payload = request.get_json()
+def handle(context, event):
+    payload = json.loads(event.body)
 
     # Client to list Services
     CoreV1Api = client.CoreV1Api()
@@ -159,44 +156,33 @@ def handle():
 
 
 async def publish(ingress_resource, loop):
-    # Use borrowed connection for NATS then mount NATS Streaming
-    # client on top.
+    # client publish to NATS
     nc = NATS()
-
-    # Start session with NATS Streaming cluster.
-    sc = STAN()
     
     msg = {"namespace": ingress_resource["metadata"]["namespace"], "name": ingress_resource["metadata"]["name"], "rules": ingress_resource["spec"]["rules"] }
 
     try:
         await nc.connect(servers=[args.nats_address], loop=loop,connect_timeout=args.conn_timeout, max_reconnect_attempts=args.conn_attempts, reconnect_time_wait=args.conn_wait)
-        await sc.connect("fissionMQTrigger", "update-ingress", nats=nc)
     except ErrNoServers as e:
         # Could not connect to any server in the cluster.
         print(e)
         return
 
-    total_messages = 0
-    future = asyncio.Future(loop=loop)
     async def message_handler(msg):
-        nonlocal future
-        nonlocal total_messages
         subject = msg.subject
         reply = msg.reply
         data = msg.data.decode()
         print ("Received a message on '{subject} {reply}': {data}".format(
             subject=subject, reply=reply, data=data
         ))
-        total_messages += 1
-        if total_messages >= 2:
-            future.set_result(None)
             
     # Simple publisher and async subscriber via coroutine.
     sid = await nc.subscribe(args.topic, cb=message_handler)
 
     try:
-        await sc.publish(args.topic, json.dumps(msg).encode('utf-8'))
-        
+        await nc.publish(args.topic, json.dumps(msg).encode('utf-8'))
+        await nc.flush(0.500)
+
         output['data'].append(msg)
     except ErrConnectionClosed as e:
         print("Connection closed prematurely.")
@@ -204,14 +190,11 @@ async def publish(ingress_resource, loop):
         print("Timeout occured when publishing msg i={}: {}".format(
             deploy, e))
     
-    # Close NATS Streaming session
-    await sc.close()
-
-    # We are using a NATS borrowed connection so we need to close manually.
-    await nc.close()
+    await nc.drain()
 
 # Used only for local testing
 if __name__ == '__main__':
-    req = '{"namespace": "sock-shop", "name": "front-end", "kind": "deployment", "replicas": 1, "labels": {"app": "front-end"}}'
-    # req = '{"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}'
-    handle()
+    event = {"data": {"namespace": "sock-shop", "name": "front-end", "kind": "deployment", "replicas": 1, "labels": {"app": "front-end"}}}
+    # event = {"data":'{"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}}
+    context = {"context": {"function-name": "update-ingress", "timeout": "180", "runtime": "python3.6", "memory-limit": "128M"}}
+    handle(event, context)

@@ -8,8 +8,6 @@ from contextlib import contextmanager
 from kubernetes import client, config, watch
 from kubernetes.client.rest import ApiException
 
-from flask import request
-
 output = {"data":[]}
 
 parser = argparse.ArgumentParser()
@@ -19,7 +17,7 @@ parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", act
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # Logger arguments
 parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 logger = logging.getLogger('script')
 ch = logging.StreamHandler()
@@ -133,7 +131,7 @@ def restoreIngress(payload):
         try:
             logger.debug("Patch specifications: %s" %(json.loads(json.dumps(body))))
             patch_ingress = ExtensionsV1beta1Api.patch_namespaced_ingress(name=ingress.metadata.name, namespace=ingress.metadata.namespace, body=json.loads(json.dumps(body)), pretty=args.pretty)
-
+        
             output['data'].append({'kind': 'Ingress', 'namespace': ingress.metadata.namespace, 'name': ingress.metadata.name, 'rules': body })
         except ApiException as e:
             print("Exception when calling ExtensionsV1beta1Api->patch_namespaced_ingress: %s\n" % e)
@@ -181,8 +179,11 @@ def removeRescaler(payload):
         print(type(payload))
         print(str(payload))
 
-def handle():
-    payload = request.get_json()
+def handle(context, event):
+    logger.info("Received event: %s" % event)
+    logger.info("Received context: %s" % context)
+
+    payload = event.body
 
     rescaleStatefulset(payload)
     rescaleDeployment(payload)
@@ -195,6 +196,6 @@ def handle():
 
 # Used only for local testing
 if __name__ == '__main__':
-    req = '{"namespace": "sock-shop", "ingress": "front-end"}'
-    handle()
-
+    event = {"data": {"namespace":"demo","ingress":"nginx-deploy"}}
+    context = {"context": {"function-name": "rescale-replicas", "timeout": "180", "runtime": "python3.6", "memory-limit": "128M"}}
+    handle(context, event)

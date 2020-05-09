@@ -14,8 +14,6 @@ from kubernetes.client.rest import ApiException
 
 from mako.template import Template
 
-from flask import request
-
 function_path = os.path.dirname(os.path.realpath(__file__))
 
 output = {"data":[]}
@@ -24,11 +22,11 @@ parser = argparse.ArgumentParser()
 # Function related argument
 parser.add_argument('-t', '--trigger-url', help="URL of the HTTP trigger", default=os.environ.get('TRIGGER_URL', None))
 # Kubernetes related arguments
-parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) # "default=False" if running locally
+parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # Logger arguments
 parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 logger = logging.getLogger('script')
 ch = logging.StreamHandler()
@@ -137,23 +135,25 @@ def configmap(req):
         "data": {"index.html": index_html, "javascript.js": javascript, "style.css": stylesheet, "default.conf": default_config},
     }
 
-
     with _pass_conflicts():
         api_response = CoreV1Api.create_namespaced_config_map(namespace=namespace, body=manifest, pretty=args.pretty)
-        logger.info("Created Configmap name: %s Namespace: %s" % (api_response.metadata.name, api_response.metadata.namespace))     
+        logger.info("Created Configmap name: %s Namespace: %s" % (api_response.metadata.name, api_response.metadata.namespace))
 
         output['data'].append(manifest)
 
-def handle():
-    payload = request.get_json()
+
+def handle(context, event):
+    payload = json.loads(event.body)
+
     configmap(payload)
     service(payload)
     deployment(payload)
 
     logger.info("Output: %s" % (json.dumps(output)))
     return json.dumps(output)
-
+   
 
 if __name__ == '__main__':
-    req = '{"namespace": "sock-shop", "name": "frontend", "rules": [{"host": "shop.weavelab.io", "http": {"paths": [{"backend": {"serviceName": "frontend", "servicePort": 80}, "path": "/"}]}}]}'
-    handle()
+    event = {"body": {"namespace": "demo", "name": "frontend", "rules": [{"host": "shop.weavelab.io", "http": {"paths": [{"backend": {"serviceName": "frontend", "servicePort": 80}, "path": "/"}]}}]}}
+    context = {"context": {"function-name": "deploy-rescaler", "timeout": "180", "runtime": "python3.6", "memory-limit": "128M"}}
+    handle(context, event)

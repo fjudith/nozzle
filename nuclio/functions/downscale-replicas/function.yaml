@@ -1,0 +1,31 @@
+apiVersion: nuclio.io/v1
+kind: NuclioFunction
+metadata:
+  name: downscale-replicas
+  namespace: nuclio
+  labels:
+    nuclio.io/project-name: nozzle
+spec:
+  handler: handler:handle
+  runtime: python:3.6
+  serviceAccount: nuclio-replica-manage
+  env:
+    - name: NATS_ADDRESS
+      value: nats://nats-cluster.nats-io:4222
+  description: >
+    Scale down the amount of Deployment and Statefulset replicas
+  build:
+    image: library/downscale-replicas
+    registry: harbor.testruction.cloud
+    baseImage: python:3.6-alpine
+    commands:
+      - "apk add --update --no-cache ca-certificates"
+      - "pip install kubernetes==10.0.1"
+  triggers:
+    downscale-replicas:
+      kind: nats
+      url: nats://nats-cluster.nats-io:4222
+      name: downscale-replicas
+      attributes:
+        topic: k8s_replicas
+        # queueName: "{{ .Namespace }}.{{ .Name }}.{{ .Id }}"

@@ -9,8 +9,6 @@ from pprint import pprint
 from kubernetes import client, config, watch
 from kubernetes.client.rest import ApiException
 
-from flask import request
-
 output = {"data":[]}
 
 parser = argparse.ArgumentParser()
@@ -22,7 +20,7 @@ parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", act
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # Logger arguments
 parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 logger = logging.getLogger('script')
 ch = logging.StreamHandler()
@@ -45,9 +43,9 @@ else:
         logger.critical("Error creating Kubernetes configuration: %s", e)
         exit(2)
 
-def handle():
-    payload = request.get_json()
-    
+def handle(context, event):
+    payload = json.loads(event.body)
+
     # Client to list namespaces
     CoreV1Api = client.CoreV1Api()
     
@@ -79,7 +77,7 @@ def handle():
         try:
             api_response = AppsV1Api.patch_namespaced_deployment_scale(name=payload['name'], namespace=payload['namespace'], body=body, pretty=args.pretty)
             logger.info("Patched number of replicas of Deployment (deploy) Name: %s to %s" % (deployment.metadata.name, args.max_deployment))
-            
+
             output['data'].append({'namespace': deployment.metadata.namespace, 'name': deployment.metadata.name, 'spec': body['spec'] })
         except ApiException as e:
             print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
@@ -130,5 +128,6 @@ def handle():
 
 # Used only for local testing
 if __name__ == '__main__':
-    req = '{"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}'
-    handle(req)
+    event = {"data": {"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}}
+    context = {"context": {"function-name": "downscale-replicas", "timeout": "180", "runtime": "python3.6", "memory-limit": "128M"}}
+    handle(context, event)

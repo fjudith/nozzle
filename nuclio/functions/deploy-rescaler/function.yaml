@@ -1,0 +1,30 @@
+apiVersion: nuclio.io/v1
+kind: NuclioFunction
+metadata:
+  name: deploy-rescaler
+  namespace: nuclio
+  labels:
+    nuclio.io/project-name: nozzle
+spec:
+  handler: handler:handle
+  runtime: python:3.6
+  serviceAccount: nuclio-deployment-manage
+  env:
+    - name: TRIGGER_URL
+      value: http://nuclio-rescale-replicas.nuclio:8080
+  description: >
+    Scale down the amount of Deployment and Statefulset replicas
+  build:
+    image: library/deploy-rescaler
+    registry: harbor.testruction.cloud
+    baseImage: python:3.6-alpine
+    commands:
+      - "apk add --update --no-cache ca-certificates"
+      - "pip install kubernetes==10.0.1"
+      - "pip install mako"
+  triggers:
+    deploy-rescaler:
+      kind: nats
+      url: nats://nats-cluster.nats-io:4222
+      attributes:
+        topic: k8s_ingresses
