@@ -10,8 +10,8 @@ spec:
   runtime: python:3.6
   serviceAccount: nuclio-deployment-manage
   env:
-    - name: NATS_ADDRESS
-      value: nats://nats-cluster.nats-io:4222
+    - name: TRIGGER_URL
+      value: http://nuclio-rescale-replicas:8080
   description: >
     Scale down the amount of Deployment and Statefulset replicas
   build:
