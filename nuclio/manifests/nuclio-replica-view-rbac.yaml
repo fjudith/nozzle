@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: nuclio
+    group: io.nuclio.k8s.management
+  name:  nuclio-replica-view
+  namespace: nuclio
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: nuclio
+    group: io.nuclio.k8s.management
+  name: nuclio-replica-view-role-binding
+  namespace: nuclio
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: nuclio-replica-view-role
+subjects:
+  - kind: ServiceAccount
+    name: nuclio-replica-view
+    namespace: nuclio
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: nuclio
+    group: io.nuclio.k8s.management
+  name: nuclio-replica-view-role
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups:
+      - extensions
+      - apps
+    resources:
+      - deployments
+      - statefulsets
+    verbs:
+      - list
+      - get
+      - watch
+
