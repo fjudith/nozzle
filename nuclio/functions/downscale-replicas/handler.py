@@ -43,9 +43,9 @@ else:
         logger.critical("Error creating Kubernetes configuration: %s", e)
         exit(2)
 
-def handle(event, context):
-    payload = (event)['data']
-    
+def handle(context, event):
+    payload = json.loads(event.body)
+
     # Client to list namespaces
     CoreV1Api = client.CoreV1Api()
     
@@ -130,4 +130,4 @@ def handle(event, context):
 if __name__ == '__main__':
     event = {"data": {"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}}
     context = {"context": {"function-name": "downscale-replicas", "timeout": "180", "runtime": "python3.6", "memory-limit": "128M"}}
-    handle(event, context)
+    handle(context, event)

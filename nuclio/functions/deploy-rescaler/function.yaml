@@ -11,7 +11,7 @@ spec:
   serviceAccount: nuclio-deployment-manage
   env:
     - name: TRIGGER_URL
-      value: http://nuclio-rescale-replicas:8080
+      value: http://nuclio-rescale-replicas.nuclio:8080
   description: >
     Scale down the amount of Deployment and Statefulset replicas
   build:
@@ -20,14 +20,11 @@ spec:
     baseImage: python:3.6-alpine
     commands:
       - "apk add --update --no-cache ca-certificates"
-      - "pip install -r /opt/nuclio/requirements.txt"
-      #  - "pip install kubernetes==10.0.1"
-      #  - "pip install asyncio-nats-client==0.9.2"
+      - "pip install kubernetes==10.0.1"
+      - "pip install mako"
   triggers:
     deploy-rescaler:
       kind: nats
       url: nats://nats-cluster.nats-io:4222
       attributes:
         topic: k8s_ingresses
-  
-  

@@ -9,6 +9,9 @@ spec:
   handler: handler:handle
   runtime: python:3.6
   serviceAccount: nuclio-ingress-manage
+  env:
+    - name: NATS_ADDRESS
+      value: nats://nats-cluster.nats-io:4222
   description: >
     List resources from namepsace containing the appropriate lablel
   build:
@@ -17,8 +20,11 @@ spec:
     baseImage: python:3.6-alpine
     commands:
       - "apk add --update --no-cache ca-certificates"
-      - "pip install -r /opt/nuclio/requirements.txt"
-      #  - "pip install kubernetes==10.0.1"
-      #  - "pip install asyncio-nats-client==0.9.2"
-  
-  
+      - "pip install kubernetes==10.0.1"
+      - "pip install asyncio-nats-client==0.9.2"
+  triggers:
+    downscale-replicas:
+      kind: nats
+      url: nats://nats-cluster.nats-io:4222
+      attributes:
+        topic: k8s_replicas

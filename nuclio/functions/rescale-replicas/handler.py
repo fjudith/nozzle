@@ -17,7 +17,7 @@ parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", act
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
 # Logger arguments
 parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_true")
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 logger = logging.getLogger('script')
 ch = logging.StreamHandler()
@@ -179,11 +179,11 @@ def removeRescaler(payload):
         print(type(payload))
         print(str(payload))
 
-def handle(event, context):
+def handle(context, event):
     logger.info("Received event: %s" % event)
     logger.info("Received context: %s" % context)
 
-    payload = (event)['data']
+    payload = event.body
 
     rescaleStatefulset(payload)
     rescaleDeployment(payload)
@@ -198,4 +198,4 @@ def handle(event, context):
 if __name__ == '__main__':
     event = {"data": {"namespace":"demo","ingress":"nginx-deploy"}}
     context = {"context": {"function-name": "rescale-replicas", "timeout": "180", "runtime": "python3.6", "memory-limit": "128M"}}
-    handle(event, context)
+    handle(context, event)

@@ -142,8 +142,9 @@ def configmap(req):
         output['data'].append(manifest)
 
 
-def handle(event, context):
-    payload = (event)['data']
+def handle(context, event):
+    payload = json.loads(event.body)
+
     configmap(payload)
     service(payload)
     deployment(payload)
@@ -153,6 +154,6 @@ def handle(event, context):
    
 
 if __name__ == '__main__':
-    event = {"data": {"namespace": "demo", "name": "frontend", "rules": [{"host": "shop.weavelab.io", "http": {"paths": [{"backend": {"serviceName": "frontend", "servicePort": 80}, "path": "/"}]}}]}}
+    event = {"body": {"namespace": "demo", "name": "frontend", "rules": [{"host": "shop.weavelab.io", "http": {"paths": [{"backend": {"serviceName": "frontend", "servicePort": 80}, "path": "/"}]}}]}}
     context = {"context": {"function-name": "deploy-rescaler", "timeout": "180", "runtime": "python3.6", "memory-limit": "128M"}}
-    handle(event, context)
+    handle(context, event)

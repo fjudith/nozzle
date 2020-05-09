@@ -135,7 +135,7 @@ async def publish(loop):
     await nc.drain()
 
 
-def handle(event, context):
+def handle(context, event):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:

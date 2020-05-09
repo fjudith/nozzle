@@ -56,8 +56,8 @@ else:
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
-def handle(event, context):
-    payload = (event)['data']
+def handle(context, event):
+    payload = json.loads(event.body)
 
     # Client to list Services
     CoreV1Api = client.CoreV1Api()
