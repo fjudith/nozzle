@@ -192,6 +192,7 @@ def handle():
     logger.info("Output: %s" % (json.dumps(output)))
     return json.dumps(output, sort_keys=True, indent=4)
 
+
 # Used only for local testing
 if __name__ == '__main__':
     req = '{"namespace": "sock-shop", "ingress": "front-end"}'

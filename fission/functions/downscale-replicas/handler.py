@@ -127,6 +127,7 @@ def handle():
     logger.info("Output: %s" % (json.dumps(output)))
     return json.dumps(output)
 
+
 # Used only for local testing
 if __name__ == '__main__':
     req = '{"namespace": "demo", "name": "web", "kind": "statefulset", "replicas": 3, "labels": {"app": "nginx", "type": "statefulset"}}'

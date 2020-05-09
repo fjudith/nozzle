@@ -157,6 +157,7 @@ def handle():
     logger.info("Output: %s" % (json.dumps(output)))
     return json.dumps(output)
 
+
 async def publish(ingress_resource, loop):
     # Use borrowed connection for NATS then mount NATS Streaming
     # client on top.

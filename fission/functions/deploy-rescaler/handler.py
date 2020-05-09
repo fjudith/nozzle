@@ -122,7 +122,6 @@ def configmap(req):
 
     default_config_template = Template(filename=(function_path + '/templates/nginx/default.conf'))
     default_config = (default_config_template.render(trigger_url=args.trigger_url))
-    
 
     # Instantiate the ConfigMap object
     manifest = {
@@ -153,6 +152,7 @@ def handle():
 
     logger.info("Output: %s" % (json.dumps(output)))
     return json.dumps(output)
+
 
 if __name__ == '__main__':
     req = '{"namespace": "sock-shop", "name": "frontend", "rules": [{"host": "shop.weavelab.io", "http": {"paths": [{"backend": {"serviceName": "frontend", "servicePort": 80}, "path": "/"}]}}]}'
