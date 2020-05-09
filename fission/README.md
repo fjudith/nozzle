@@ -103,7 +103,7 @@ fission mqtrigger create --name update-ingress --function update-ingress --mqtyp
 ### Deploy-Rescaler
 
 The `deploy-rescaler` function receives messages pushed by the `publish-resources` function to inject the `rescaler` website inside the namespace associeted with either deployment and statefulset resources.
-The function is triggered by Kubeless using the publish-subscribe mechanism leveraging the [NATS Streamin trigger](https://docs.fission.io/docs/triggers/message-queue-trigger/nats-streaming/).
+The function is triggered by Kubeless using the publish-subscribe mechanism leveraging the [NATS Streaming trigger](https://docs.fission.io/docs/triggers/message-queue-trigger/nats-streaming/).
 
 ```bash
 fission function create \
