@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import io
 from pprint import pprint
 
 from contextlib import contextmanager
@@ -22,7 +23,8 @@ parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_
 args = parser.parse_args()
 
 logger = logging.getLogger('script')
-ch = logging.StreamHandler()
+log_capture_string = io.StringIO()
+ch = logging.StreamHandler(log_capture_string)
 if args.debug:
     logger.setLevel(logging.DEBUG)
     ch.setLevel(logging.DEBUG)
@@ -189,8 +191,15 @@ def handle():
     restoreIngress(payload)
     removeRescaler(payload)
 
-    logger.info("Output: %s" % (json.dumps(output)))
-    return json.dumps(output, sort_keys=True, indent=4)
+    # logger.info("Output: %s" % (json.dumps(output)))
+    # return json.dumps(output, sort_keys=True, indent=4)
+
+    ### Pull the contents back into a string and close the stream
+    log_contents = log_capture_string.getvalue()
+    log_capture_string.close()
+
+    ### Output as lower case to prove it worked. 
+    return log_contents.lower()
 
 
 # Used only for local testing
