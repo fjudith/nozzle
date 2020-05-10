@@ -2,11 +2,14 @@ import argparse
 import json
 import logging
 import os
+import io
 from pprint import pprint
 
 from contextlib import contextmanager
 from kubernetes import client, config, watch
 from kubernetes.client.rest import ApiException
+
+output = {"data":[]}
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', '--rescaler', help="Name of the Rescaler deployment", default=os.environ.get('RESCALER_NAME', None))
@@ -18,7 +21,8 @@ parser.add_argument('-d', '--debug', help="Enable debug logging", action="store_
 args = parser.parse_args()
 
 logger = logging.getLogger('script')
-ch = logging.StreamHandler()
+log_capture_string = io.StringIO()
+ch = logging.StreamHandler(log_capture_string)
 if args.debug:
     logger.setLevel(logging.DEBUG)
     ch.setLevel(logging.DEBUG)
@@ -63,6 +67,7 @@ def rescaleStatefulset(payload):
             logger.debug("Patch specifications: %s" %(json.loads(json.dumps(body))))
             api_response = AppsV1Api.patch_namespaced_stateful_set_scale(name=statefulset.metadata.name, namespace=payload['namespace'], body=body, pretty=args.pretty)
 
+            output['data'].append({'kind': 'StatefulSet', 'namespace': statefulset.metadata.namespace, 'name': statefulset.metadata.name, 'spec': body['spec'] })
         except ApiException as e:
             print("Exception when calling AppsV1Api->patch_namespaced_stateful_set_scale: %s\n" % e)
             print(payload.keys())
@@ -95,6 +100,7 @@ def rescaleDeployment(payload):
                 logger.debug("Patch specifications: %s" %(json.loads(json.dumps(body))))
                 api_response = AppsV1Api.patch_namespaced_deployment_scale(name=deployment.metadata.name, namespace=payload['namespace'], body=body, pretty=args.pretty)
 
+                output['data'].append({'kind': 'Deployment', 'namespace': deployment.metadata.namespace, 'name': deployment.metadata.name, 'spec': body['spec'] })
             except ApiException as e:
                 print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
                 print(payload.keys())
@@ -127,7 +133,8 @@ def restoreIngress(payload):
         try:
             logger.debug("Patch specifications: %s" %(json.loads(json.dumps(body))))
             patch_ingress = ExtensionsV1beta1Api.patch_namespaced_ingress(name=ingress.metadata.name, namespace=ingress.metadata.namespace, body=json.loads(json.dumps(body)), pretty=args.pretty)
-        
+
+            output['data'].append({'kind': 'Ingress', 'namespace': ingress.metadata.namespace, 'name': ingress.metadata.name, 'rules': body })
         except ApiException as e:
             print("Exception when calling ExtensionsV1beta1Api->patch_namespaced_ingress: %s\n" % e)
             print(payload.keys())
@@ -145,6 +152,7 @@ def removeRescaler(payload):
         logger.info("Remove rescaler Deployment from Namespace: %s" % payload['namespace'])
         patch_ingress = AppsV1Api.delete_namespaced_deployment(name=args.rescaler, namespace=payload['namespace'], pretty=args.pretty)
         
+        output['data'].append({'kind': 'Deployment', 'namespace': payload['namespace'], 'name': args.rescaler, 'deleted': 'true' })
     except ApiException as e:
         print("Exception when calling AppsV1Api.delete_namespaced_deployment: %s\n" % e)
         print(payload.keys())
@@ -155,6 +163,7 @@ def removeRescaler(payload):
         logger.info("Remove rescaler Service from Namespace: %s" % payload['namespace'])
         patch_ingress = CoreV1Api.delete_namespaced_service(name=args.rescaler, namespace=payload['namespace'], pretty=args.pretty)
         
+        output['data'].append({'kind': 'Service', 'namespace': payload['namespace'], 'name': args.rescaler, 'deleted': 'true' })
     except ApiException as e:
         print("Exception when calling CoreV1Api.delete_namespaced_service: %s\n" % e)
         print(payload.keys())
@@ -165,6 +174,7 @@ def removeRescaler(payload):
         logger.info("Remove rescaler ConfigMap from Namespace: %s" % payload['namespace'])
         patch_ingress = CoreV1Api.delete_namespaced_config_map(name=args.rescaler, namespace=payload['namespace'], pretty=args.pretty)
         
+        output['data'].append({'kind': 'ConfigMap', 'namespace': payload['namespace'], 'name': args.rescaler, 'deleted': 'true' })
     except ApiException as e:
         print("Exception when calling CoreV1Api.delete_namespaced_config_map: %s\n" % e)
         print(payload.keys())
@@ -181,6 +191,14 @@ def handle(event, context):
     rescaleDeployment(payload)
     restoreIngress(payload)
     removeRescaler(payload)
+
+    ### Pull the contents back into a string and close the stream
+    log_contents = log_capture_string.getvalue()
+    log_capture_string.close()
+
+    ### Output as lower case to prove it worked. 
+    return log_contents.lower()
+
 
 # Used only for local testing
 if __name__ == '__main__':
