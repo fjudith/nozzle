@@ -15,7 +15,7 @@ spec:
     - name: RESCALER_NAME
       value: rescaler
   description: >
-    List resources from namepsace containing the appropriate lablel
+    List deployment and statefulset resources from namepsaces containing the appropriate labels
   build:
     image: library/publish-resources
     registry: harbor.testruction.cloud

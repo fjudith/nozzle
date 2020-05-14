@@ -13,7 +13,7 @@ spec:
     - name: NATS_ADDRESS
       value: nats://nats-cluster.nats-io:4222
   description: >
-    List resources from namepsace containing the appropriate lablel
+    Redirect ingress traffic to the rescaler pod
   build:
     image: library/update-ingress
     registry: harbor.testruction.cloud

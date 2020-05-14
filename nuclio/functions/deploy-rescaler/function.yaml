@@ -13,7 +13,7 @@ spec:
     - name: TRIGGER_URL
       value: http://nuclio-rescale-replicas.nuclio:8080
   description: >
-    Scale down the amount of Deployment and Statefulset replicas
+    Deploy the rescaler website allowing users to restore the application services
   build:
     image: library/deploy-rescaler
     registry: harbor.testruction.cloud

@@ -13,7 +13,7 @@ spec:
     - name: RESCALER_NAME
       value: rescaler
   description: >
-    Scale down the amount of Deployment and Statefulset replicas
+    Restore the amount of Deployment and Statefulset replicas, update the ingress resources and destroy the rescaler
   build:
     image: library/rescale-replicas
     registry: harbor.testruction.cloud
