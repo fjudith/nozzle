@@ -16,7 +16,7 @@ output = {"data":[]}
 
 parser = argparse.ArgumentParser()
 # Function related arguments
-parser.add_argument('-t', '--topic', help="NATS Streaming topic", default="k8s_replicas")
+parser.add_argument('-t', '--topic', help="NATS Streaming topic", default="k8s.replicas")
 parser.add_argument('-x', '--exclude', help="Name of the Rescaler deployment", default=os.environ.get('RESCALER_NAME', 'rescaler'))
 # Kubernetes related arguments
 parser.add_argument('-l', '--selector', help="Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)", default='nozzle=true')

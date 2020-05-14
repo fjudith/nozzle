@@ -27,5 +27,5 @@ spec:
       url: nats://nats-cluster.nats-io:4222
       name: downscale-replicas
       attributes:
-        topic: k8s_replicas
+        topic: k8s.replicas
         # queueName: "{{ .Namespace }}.{{ .Name }}.{{ .Id }}"

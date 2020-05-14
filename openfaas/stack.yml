@@ -27,7 +27,7 @@ functions:
      - "node.platform.os == linux"
     annotations:
       com.openfaas.serviceaccount: openfaas-replica-manage
-      topic: "k8s_replicas"
+      topic: "k8s.replicas"
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
 
@@ -39,7 +39,7 @@ functions:
      - "node.platform.os == linux"
     annotations:
       com.openfaas.serviceaccount: openfaas-ingress-manage
-      topic: "k8s_replicas"
+      topic: "k8s.replicas"
     environment:
       NATS_ADDRESS: nats://nats-cluster.nats-io:4222
   
@@ -51,7 +51,7 @@ functions:
      - "node.platform.os == linux"
     annotations:
       com.openfaas.serviceaccount: openfaas-deployment-manage
-      topic: "k8s_ingresses"
+      topic: "k8s.ingresses"
     environment:
       OPENFAAS_GATEWAY_URL: http://gateway.openfaas.svc.cluster.local:8080
 

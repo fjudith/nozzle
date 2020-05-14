@@ -56,12 +56,12 @@ note right
    List of eligible resource replicas
 end note
 
-"publish-resources" -> "nats": Publish resource list to **k8s_replicas** topic
+"publish-resources" -> "nats": Publish resource list to **k8s.replicas** topic
 activate "nats"
 
-"downscale-replicas" -> "nats": Subscribe **k8s_replicas** topic
-"update-ingress" -> "nats": Subscribe **k8s_replicas** topic
-"deploy-rescaler" -> "nats": Subscribe **k8s_ingresses** topic
+"downscale-replicas" -> "nats": Subscribe **k8s.replicas** topic
+"update-ingress" -> "nats": Subscribe **k8s.replicas** topic
+"deploy-rescaler" -> "nats": Subscribe **k8s.ingresses** topic
 
 "nats" --> "downscale-replicas": Json
 "downscale-replicas" -> "kubernetes": Backup current config. & downscale

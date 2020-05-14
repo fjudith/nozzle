@@ -77,7 +77,7 @@ fission function create \
 Execute the following command to create a `trigger` that run the `downscale-resources` function on NATS Streaming publish events.
 
 ```bash
-fission mqtrigger create --name downscale-replicas --function downscale-replicas --mqtype='nats-streaming' --topic 'k8s_replicas' --spec
+fission mqtrigger create --name downscale-replicas --function downscale-replicas --mqtype='nats-streaming' --topic 'k8s.replicas' --spec
 ```
 
 ### Update-Ingress
@@ -97,7 +97,7 @@ fission function create \
 Execute the following command to create a `trigger` that run the `downscale-resources` function on NATS Streaming publish events.
 
 ```bash
-fission mqtrigger create --name update-ingress --function update-ingress --mqtype='nats-streaming' --topic 'k8s_replicas' --spec
+fission mqtrigger create --name update-ingress --function update-ingress --mqtype='nats-streaming' --topic 'k8s.replicas' --spec
 ```
 
 ### Deploy-Rescaler
@@ -117,7 +117,7 @@ fission function create \
 Execute the following command to create a `trigger` that run the `downscale-resources` function on NATS Streaming publish events.
 
 ```bash
-fission mqtrigger create --name deploy-rescaler --function deploy-rescaler --mqtype='nats-streaming' --topic 'k8s_ingresses' --spec
+fission mqtrigger create --name deploy-rescaler --function deploy-rescaler --mqtype='nats-streaming' --topic 'k8s.ingresses' --spec
 ```
 
 ## Rescale-Replicas

@@ -13,4 +13,4 @@ spec:
     type: name
   maxRetries: 0
   messageQueueType: nats-streaming
-  topic: k8s_replicas
+  topic: k8s.replicas

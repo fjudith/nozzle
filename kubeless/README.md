@@ -71,7 +71,7 @@ kubectl -n kubeless patch deployment downscale-replicas -p '{"spec":{"template":
 Execute the following command to create a `trigger` that run the `downscale-resources` function on NATS push events.
 
 ```bash
-kubeless trigger nats create downscale-replicas --namespace kubeless --function-selector created-by=kubeless,function=downscale-replicas --trigger-topic 'k8s_replicas'
+kubeless trigger nats create downscale-replicas --namespace kubeless --function-selector created-by=kubeless,function=downscale-replicas --trigger-topic 'k8s.replicas'
 ```
 
 ### Update-Ingress
@@ -93,7 +93,7 @@ kubectl -n kubeless patch deployment update-ingress -p '{"spec":{"template":{"sp
 Execute the following command to create a `trigger` that run the `downscale-resources` function on NATS push events.
 
 ```bash
-kubeless trigger nats create update-ingress --namespace kubeless --function-selector created-by=kubeless,function=update-ingress --trigger-topic 'k8s_replicas'
+kubeless trigger nats create update-ingress --namespace kubeless --function-selector created-by=kubeless,function=update-ingress --trigger-topic 'k8s.replicas'
 ```
 
 ### Deploy-Rescaler
@@ -114,7 +114,7 @@ kubectl -n kubeless patch deployment deploy-rescaler -p '{"spec":{"template":{"s
 Execute the following command to create a `trigger` that run the `deploy-rescaler` function on NATS push events.
 
 ```bash
-kubeless trigger nats create deploy-rescaler --namespace kubeless --function-selector created-by=kubeless,function=deploy-rescaler --trigger-topic 'k8s_ingresses'
+kubeless trigger nats create deploy-rescaler --namespace kubeless --function-selector created-by=kubeless,function=deploy-rescaler --trigger-topic 'k8s.ingresses'
 ```
 
 #### Limitation

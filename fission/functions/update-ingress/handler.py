@@ -21,7 +21,7 @@ output = {"data":[]}
 
 parser = argparse.ArgumentParser()
 # Function related arguments
-parser.add_argument('-t', '--topic', help="NATS Streaming topic", default="k8s_ingresses")
+parser.add_argument('-t', '--topic', help="NATS Streaming topic", default="k8s.ingresses")
 # Kubernetes related arguments
 parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) # "default=False" if running locally
 parser.add_argument('--pretty', help='Output pretty printed.', default=False)
