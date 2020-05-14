@@ -34,8 +34,8 @@ box "Nozzle" #121212
   participant "publish-resources"
   participant "nats" #27AAE0
   participant "downscale-replicas"
-  participant "deploy-rescaler"
   participant "update-ingress"
+  participant "deploy-rescaler"
   participant "rescale-replicas"
 end box
 participant "kubernetes" #326CE5
