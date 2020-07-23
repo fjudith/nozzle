@@ -1,0 +1,100 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Gateway
+metadata:
+  name: nozzle-webhook
+  namespace: argo-events
+spec:
+  replica: 1
+  type: webhook
+  eventSourceRef:
+    name: nozzle-event-source
+  template:
+    serviceAccountName: argo-events-sa
+  service:
+    ports:
+      - port: 8080
+        targetPort: 8080
+  subscribers:
+    http:
+      - "http://nozzle-rescale-replicas-sensor.argo.svc:9300/"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: nozzle-event-source
+  namespace: argo-events
+spec:
+  type: webhook
+  webhook:
+    # gateway can run multiple HTTP servers. Simply define a unique port to start a new HTTP server
+    rescale:
+      # port to run HTTP server on
+      port: "8080"
+      # endpoint to listen to
+      endpoint: /rescale
+      # HTTP request method to allow. In this case, only POST requests are accepted
+      method: POST
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: nozzle-rescale-replicas
+  namespace: argo
+spec:
+  template:
+    serviceAccountName: argo-events-sa
+  dependencies:
+    - name: webhook
+      gatewayName: nozzle-webhook
+      eventName: rescale
+  subscription:
+    http:
+      port: 9300
+  triggers:
+    - template:
+        name: nozzle-rescale-replicas
+        k8s:
+          group: argoproj.io
+          version: v1alpha1
+          resource: workflows
+          operation: create
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              namespace: argo
+              metadata:
+                generateName: webhook-nozzle-rescale-replicas-
+              spec:
+                entrypoint: rescale-replicas
+                arguments:
+                  parameters:
+                  - name: message
+                    # the value will get overridden by event payload from test-dep
+                    value: hello world
+                templates:
+                - name: rescale-replicas
+                  serviceAccountName: argo-rescale-manage
+                  inputs:
+                    parameters:
+                    - name: message
+                  container:
+                    image: docker.io/fjudith/rescale-replicas:argo-python3.6
+                    imagePullPolicy: Always
+                    env:
+                    - name: RESCALER_NAME
+                      value: "rescaler"
+                    command: [python]
+                    args:
+                      - handler.py
+                      - --json={{inputs.parameters.message}}
+                      - --output=/tmp/rescale-replicas.log
+          parameters:
+            - src:
+                dependencyName: webhook
+                dataKey: body
+              dest: spec.arguments.parameters.0.value
+          outputs:
+            artifacts:
+            - name: out-artifact
+              path: /tmp/rescale-replicas.log

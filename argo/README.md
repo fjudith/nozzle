@@ -11,6 +11,14 @@ git clone https://github.com/fjudith/nozzle
 cd nozzle/argo
 ```
 
+## TL;DR
+
+```bash
+kubectl apply -f manifests/
+kubectl apply -f event.yaml
+argo -n argo submit --watch workflow.yaml
+```
+
 ## Manifests
 
 The [manifests](./manifests/) directory contains the required [RBAC and ServiceAccounts](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) enabling each function to interact with the Kubernetes API.
@@ -76,3 +84,4 @@ docker image build -t fjudith/rescale-replicas:argo-python3.6 . && \
 docker image push fjudith/rescale-replicas:argo-python3.6 && \
 popd
 ```
+

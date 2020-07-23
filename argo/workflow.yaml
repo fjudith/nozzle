@@ -96,6 +96,9 @@ spec:
     container:
       image: docker.io/fjudith/deploy-rescaler:argo-python3.6
       imagePullPolicy: Always
+      env:
+      - name: TRIGGER_URL
+        value: 'http://nozzle-webhook-gateway.argo-events:8080'
       command: ["python"]
       args:
       - "handler.py"
@@ -105,4 +108,5 @@ spec:
       artifacts:
       - name: out-artifact
         path: /tmp/output-artifact.json
-        
+
+          

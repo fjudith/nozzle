@@ -12,6 +12,8 @@ from kubernetes.client.rest import ApiException
 output = {"data":[]}
 
 parser = argparse.ArgumentParser()
+parser.add_argument('-j', '--json', help="Rescale specifications", required=True)
+parser.add_argument('-o', '--output', help="JSON output file that contains list of resstored resources", default=os.environ.get('JSON_OUTPUT', default="/tmp/rescale-replicas.jog"))
 parser.add_argument('-r', '--rescaler', help="Name of the Rescaler deployment", default=os.environ.get('RESCALER_NAME', None))
 # Kubernetes related arguments
 parser.add_argument('--in-cluster', help="Use in cluster kubernetes config", action="store_true", default=True) #Remove ", default=True" if running locally
@@ -182,10 +184,7 @@ def removeRescaler(payload):
         print(str(payload))
 
 def handle(context, event):
-    logger.info("Received event: %s" % event)
-    logger.info("Received context: %s" % context)
-
-    payload = event.body
+    payload = json.loads(args.json)
 
     rescaleStatefulset(payload)
     rescaleDeployment(payload)
@@ -194,14 +193,18 @@ def handle(context, event):
 
     ### Pull the contents back into a string and close the stream
     log_contents = log_capture_string.getvalue()
+    ### Output as lower case to prove it worked.
+    with open(args.output, 'w') as outfile:
+        logger.info("Write JSON: %s" % (args.output))
+        json.dump(log_contents.lower(), outfile)
+    
     log_capture_string.close()
 
-    ### Output as lower case to prove it worked. 
     return log_contents.lower()
 
 
 # Used only for local testing
 if __name__ == '__main__':
-    event = {"data": {"namespace":"demo","ingress":"nginx-deploy"}}
-    context = {"context": {"function-name": "rescale-replicas", "timeout": "180", "runtime": "python3.6", "memory-limit": "128M"}}
+    event = {}
+    context = {}
     handle(context, event)
