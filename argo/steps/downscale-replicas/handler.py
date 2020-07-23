@@ -45,87 +45,90 @@ else:
         logger.critical("Error creating Kubernetes configuration: %s", e)
         exit(2)
 
-def handle(context, event):
-    with open(args.filename, 'r') as intpufile:
-        JSON = json.load(intpufile)
-
+def downscale(payload):
     # Client to list namespaces
     CoreV1Api = client.CoreV1Api()
     
     # Client to list Deployments and StatefulSets
     AppsV1Api = client.AppsV1Api()
 
-    for payload in JSON['data']:
-        if payload['kind'] == "deployment":
-            deployment = AppsV1Api.read_namespaced_deployment(name=payload['name'], namespace=payload['namespace'], pretty=args.pretty)
-            
-            if not "kubectl.kubernetes.io/last-applied-configuration" in deployment.metadata.annotations:
-                annotation = {
-                    "metadata": {
-                        "annotations": {
-                            "replicas.nozzle.io/last-known-configuration": str(payload['replicas'])
-                        }
-                    }
-                }
-
-                logger.info("Backing up number of replicas of Deployment (deploy) Name: %s to %s" % (deployment.metadata.name, annotation))
-                try:
-                    backup_replicas = AppsV1Api.patch_namespaced_deployment(name=payload['name'], namespace=payload['namespace'], body=annotation, pretty=args.pretty)
-                except ApiException as e:
-                    print("Exception when calling AppsV1Api->patch_namespaced_deployment: %s\n" % e)
-                    print(payload.keys())
-                    print(type(payload))
-                    print(str(payload))
-            
-            body={'spec':{'replicas': args.max_deployment}}        
-            try:
-                api_response = AppsV1Api.patch_namespaced_deployment_scale(name=payload['name'], namespace=payload['namespace'], body=body, pretty=args.pretty)
-                logger.info("Patched number of replicas of Deployment (deploy) Name: %s to %s" % (deployment.metadata.name, args.max_deployment))
-
-                output['data'].append({'namespace': deployment.metadata.namespace, 'name': deployment.metadata.name, 'spec': body['spec'] })
-            except ApiException as e:
-                print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
-                print(payload.keys())
-                print(type(payload))
-                print(str(payload))
-                
-        elif payload['kind'] == "statefulset":
-            statefulset = AppsV1Api.read_namespaced_stateful_set(name=payload['name'], namespace=payload['namespace'], pretty=args.pretty)
-            
-            if not "kubectl.kubernetes.io/last-applied-configuration" in statefulset.metadata.annotations:
-                annotation = {
-                    "metadata":{
-                        "annotations": {
-                            "replicas.nozzle.io/last-known-configuration": str(payload['replicas'])
-                        }
-                    }
-                }
-
-                logger.info("Backing up number of replicas of Statefulset (sts) Name: %s to %s" % (statefulset.metadata.name, annotation))
-                try:
-                    backup_replicas = AppsV1Api.patch_namespaced_stateful_set(name=payload['name'], namespace=payload['namespace'], body=annotation, pretty=args.pretty)
-                except ApiException as e:
-                    print("Exception when calling AppsV1Api->patch_namespaced_stateful_set: %s\n" % e)
-                    print(payload.keys())
-                    print(type(payload))
-                    print(str(payload))        
-            
-            body={'spec':{'replicas': args.max_statefulset}}
-            try:
-                api_response = AppsV1Api.patch_namespaced_stateful_set_scale(name=payload['name'], namespace=payload['namespace'], body=body, pretty=args.pretty)
-                logger.info("Patched number of replicas of Statefulset (sts) Name: %s to %s" % (statefulset.metadata.name, args.max_statefulset))
-
-                output['data'].append({'namespace': statefulset.metadata.namespace, 'name': statefulset.metadata.name, 'spec': body['spec'] })
-            except ApiException as e:
-                print("Exception when calling AppsV1Api->patch_namespaced_stateful_set_scale: %s\n" % e)
-                print(payload.keys())
-                print(type(payload))
-                print(str(payload))
-        else:
-            msg = "SKIPPING: Resource is not of kind Deployment or Statefulset"
-            print(msg)
-            return(msg)
     
+    if payload['kind'] == "deployment":
+        deployment = AppsV1Api.read_namespaced_deployment(name=payload['name'], namespace=payload['namespace'], pretty=args.pretty)
+        
+        if not "kubectl.kubernetes.io/last-applied-configuration" in deployment.metadata.annotations:
+            annotation = {
+                "metadata": {
+                    "annotations": {
+                        "replicas.nozzle.io/last-known-configuration": str(payload['replicas'])
+                    }
+                }
+            }
+
+            logger.info("Backing up number of replicas of Deployment (deploy) Name: %s to %s" % (deployment.metadata.name, annotation))
+            try:
+                backup_replicas = AppsV1Api.patch_namespaced_deployment(name=payload['name'], namespace=payload['namespace'], body=annotation, pretty=args.pretty)
+            except ApiException as e:
+                print("Exception when calling AppsV1Api->patch_namespaced_deployment: %s\n" % e)
+                print(payload.keys())
+                print(type(payload))
+                print(str(payload))
+            
+        body={'spec':{'replicas': args.max_deployment}}        
+        try:
+            api_response = AppsV1Api.patch_namespaced_deployment_scale(name=payload['name'], namespace=payload['namespace'], body=body, pretty=args.pretty)
+            logger.info("Patched number of replicas of Deployment (deploy) Name: %s to %s" % (deployment.metadata.name, args.max_deployment))
+
+            output['data'].append({'namespace': deployment.metadata.namespace, 'name': deployment.metadata.name, 'spec': body['spec'] })
+        except ApiException as e:
+            print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
+            print(payload.keys())
+            print(type(payload))
+            print(str(payload))
+                
+    elif payload['kind'] == "statefulset":
+        statefulset = AppsV1Api.read_namespaced_stateful_set(name=payload['name'], namespace=payload['namespace'], pretty=args.pretty)
+            
+        if not "kubectl.kubernetes.io/last-applied-configuration" in statefulset.metadata.annotations:
+            annotation = {
+                "metadata":{
+                    "annotations": {
+                        "replicas.nozzle.io/last-known-configuration": str(payload['replicas'])
+                    }
+                }
+            }
+
+            logger.info("Backing up number of replicas of Statefulset (sts) Name: %s to %s" % (statefulset.metadata.name, annotation))
+            try:
+                backup_replicas = AppsV1Api.patch_namespaced_stateful_set(name=payload['name'], namespace=payload['namespace'], body=annotation, pretty=args.pretty)
+            except ApiException as e:
+                print("Exception when calling AppsV1Api->patch_namespaced_stateful_set: %s\n" % e)
+                print(payload.keys())
+                print(type(payload))
+                print(str(payload))        
+            
+        body={'spec':{'replicas': args.max_statefulset}}
+        try:
+            api_response = AppsV1Api.patch_namespaced_stateful_set_scale(name=payload['name'], namespace=payload['namespace'], body=body, pretty=args.pretty)
+            logger.info("Patched number of replicas of Statefulset (sts) Name: %s to %s" % (statefulset.metadata.name, args.max_statefulset))
+
+            output['data'].append({'namespace': statefulset.metadata.namespace, 'name': statefulset.metadata.name, 'spec': body['spec'] })
+        except ApiException as e:
+            print("Exception when calling AppsV1Api->patch_namespaced_stateful_set_scale: %s\n" % e)
+            print(payload.keys())
+            print(type(payload))
+            print(str(payload))
+    else:
+        msg = "SKIPPING: Resource is not of kind Deployment or Statefulset"
+        print(msg)
+        return(msg)
+    
+def handle(context, event):
+    with open(args.filename, 'r') as intpufile:
+        JSON = json.load(intpufile)
+
+    for payload in JSON['data']:
+        downscale(payload)
 
     logger.info("Output: %s" % (json.dumps(output)))
     
