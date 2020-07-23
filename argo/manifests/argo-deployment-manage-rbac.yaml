@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: argo
+    group: io.argo.k8s.management
+  name:  argo-deployment-manage
+  namespace: argo
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: argo
+    group: io.argo.k8s.management
+  name: argo-deployment-manage-role-binding
+  namespace: argo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argo-deployment-manage-role
+subjects:
+  - kind: ServiceAccount
+    name: argo-deployment-manage
+    namespace: argo
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: argo
+    group: io.argo.k8s.management
+  name: argo-deployment-manage-role
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps","services"]
+    verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - update
+      - patch
+  - apiGroups:
+      - extensions
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - create
+      - patch
+      - update
+      - delete
+

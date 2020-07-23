@@ -1,0 +1,108 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: nozzle-
+spec:
+  entrypoint: diamond
+  templates:
+  - name: diamond
+    dag:
+      tasks:
+      - name: publish
+        template: publish-resources
+        
+      - name: downscale
+        dependencies: [publish]
+        template: downscale-replicas
+        arguments:
+          artifacts:
+            - name: downscale-replicas-in-artifact
+              from: "{{tasks.publish.outputs.artifacts.out-artifact}}"
+
+      - name: update
+        dependencies: [publish]
+        template: update-ingress
+        arguments:
+          artifacts:
+            - name: update-ingress-in-artifact
+              from: "{{tasks.publish.outputs.artifacts.out-artifact}}"
+      
+      - name: deploy
+        dependencies: [downscale, update]
+        template: deploy-rescaler
+        arguments:
+          artifacts:
+            - name: deploy-rescaler-in-artifact
+              from: "{{tasks.update.outputs.artifacts.out-artifact}}"
+
+  - name: publish-resources
+    serviceAccountName: argo-replica-view
+    container:
+      image: docker.io/fjudith/publish-resources:argo-python3.6
+      imagePullPolicy: Always
+      command: ["python"]
+      args:
+      - "handler.py"
+      - "--output=/tmp/output-artifact.json"
+    outputs:
+      artifacts:
+      - name: out-artifact
+        path: /tmp/output-artifact.json
+  
+  - name: downscale-replicas
+    serviceAccountName: argo-replica-manage
+    inputs:
+      artifacts:
+      - name: downscale-replicas-in-artifact
+        path: /tmp/intput.json
+    container:
+      image: docker.io/fjudith/downscale-replicas:argo-python3.6
+      imagePullPolicy: Always
+      command: ["python"]
+      args:
+      - "handler.py"
+      - "--filename=/tmp/intput.json"
+      - "--output=/tmp/output-artifact.json"
+    outputs:
+      artifacts:
+      - name: out-artifact
+        path: /tmp/output-artifact.json
+
+  - name: update-ingress
+    serviceAccountName: argo-ingress-manage
+    inputs:
+      artifacts:
+      - name: update-ingress-in-artifact
+        path: /tmp/intput.json
+    container:
+      image: docker.io/fjudith/update-ingress:argo-python3.6
+      imagePullPolicy: Always
+      command: ["python"]
+      args:
+      - "handler.py"
+      - "--filename=/tmp/intput.json"
+      - "--output=/tmp/output-artifact.json"
+    outputs:
+      artifacts:
+      - name: out-artifact
+        path: /tmp/output-artifact.json
+  
+  - name: deploy-rescaler
+    serviceAccountName: argo-deployment-manage
+    inputs:
+      artifacts:
+      - name: deploy-rescaler-in-artifact
+        path: /tmp/intput.json
+    container:
+      image: docker.io/fjudith/deploy-rescaler:argo-python3.6
+      imagePullPolicy: Always
+      command: ["python"]
+      args:
+      - "handler.py"
+      - "--filename=/tmp/intput.json"
+      - "--output=/tmp/output-artifact.json"
+    outputs:
+      artifacts:
+      - name: out-artifact
+        path: /tmp/output-artifact.json
+        
