@@ -2,7 +2,8 @@
 
 ## Pre-requesits
 
-Argo requires you to install the [Argo client](https://github.com/argoproj/argo/releases) in order to deploy the workflow
+Argo requires you to install **cluster wide (i.e not namespaced)** installation of [Argo Workflow](https://argoproj.github.io/argo/quick-start/) and [Argo Events](https://argoproj.github.io/argo-events/installation/).
+Local installation of the [Argo client](https://github.com/argoproj/argo/releases) is also required in order to deploy the workflow
 You will also need to get a copy of this repository to run the commands:
 
 ```bash
@@ -14,8 +15,11 @@ cd nozzle/argo
 ## TL;DR
 
 ```bash
+# Deploy required RBAC and Demo app
 kubectl apply -f manifests/
+# Deploy the rescaler event
 kubectl apply -f event.yaml
+# Deploy the workflow
 argo -n argo submit --watch workflow.yaml
 ```
 
