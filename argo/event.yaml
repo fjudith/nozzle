@@ -65,6 +65,8 @@ spec:
               namespace: argo
               metadata:
                 generateName: webhook-nozzle-rescale-replicas-
+                labels:
+                  workflows.argoproj.io/archive-strategy: "always"
               spec:
                 entrypoint: rescale-replicas
                 arguments:

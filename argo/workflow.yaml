@@ -2,6 +2,8 @@ apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
   generateName: nozzle-
+  labels:
+    workflows.argoproj.io/archive-strategy: "always"
 spec:
   entrypoint: diamond
   templates:
