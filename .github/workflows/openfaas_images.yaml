@@ -15,7 +15,7 @@ env:
 
 jobs:
   image-build:
-    name: 'Stack (Python: ${{ matrix.python }})'
+    name: '{{ matrix.image }} (Python: ${{ matrix.python }})'
     runs-on: ubuntu-20.04
     
     strategy:
@@ -65,7 +65,7 @@ jobs:
       - name: Run shrinkwrap build
         uses: docker://openfaas/faas-cli:latest-root
         with:
-          args: build -f stack.yml --shrinkwrap
+          args: build -f stack.yml --shrinkwrap --build-option=dev
 
       - name: Build image
         id: docker_build
