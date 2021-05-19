@@ -20,6 +20,12 @@ jobs:
     
     strategy:
       matrix:
+        image:
+          - deploy-rescaler
+          - downscale-replicas
+          - publish-resources
+          - rescale-replicas
+          - update-ingress
         python:
           - 3.9
     steps:
@@ -49,13 +55,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+      - run:
+          working-directory: openfaas/
+      
+      - name: Pull template
+        uses: docker://openfaas/faas-cli:latest-root
+        with:
+          args: template store pull python3
+      - name: Run shrinkwrap build
+        uses: docker://openfaas/faas-cli:latest-root
+        with:
+          args: build -f stack.yml --shrinkwrap
 
-      - name: Build images using OpenFaaS client
-        working-directory: openfaas/
-        run: |
-          curl -sLO https://github.com/openfaas/faas-cli/releases/download/0.13.9/faas-cli && \
-          curl -sLO https://github.com/openfaas/faas-cli/releases/download/0.13.9/faas-cli.sha256 && \
-          sha256sum --check faas-cli.sha256 && \
-          chmod +x ./faas-cli && sudo mv ./faas-cli /usr/local/bin/ && \
-          faas-cli build -f ./stack.yml -o dev && \
-          faas-cli push -f ./stack.yml
+      - name: Build image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          tags: ${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_MAJOR }}-openfaas-python${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_MINOR }}-openfaas-python${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_PATCH }}-openfaas-python${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:openfaas-python${{ matrix.python }}
+          build-args:
+            VCS_REF=${{ github.ref }}
+            VERSION=${{ env.SEMVER_PATCH }}
+            BUILD_DATE=${{ env.BUILD_DATE }}
+            PYTHON_VERSION=${{ matrix.python }}
+          context: build/${{ matrix.image }}/
+          file: build/${{ matrix.image }}/Dockerfile
+          platforms: linux/amd64
+          push: true
