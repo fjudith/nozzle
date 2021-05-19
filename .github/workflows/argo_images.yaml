@@ -3,6 +3,7 @@ name: Argo container images
 on:
  push:
   paths:
+    - '.github/workflows/argo_images.yaml'
     - 'argo/steps/deploy-rescaler/**'
     - 'argo/steps/downscale-replicas/**'
     - 'argo/steps/publish-resources/**'
@@ -10,6 +11,7 @@ on:
     - 'argo/steps/update-ingress/**'
   pull_request:
     paths:
+    - '.github/workflows/argo_images.yaml'
     - 'argo/steps/deploy-rescaler/**'
     - 'argo/steps/downscale-replicas/**'
     - 'argo/steps/publish-resources/**'
