@@ -1,12 +1,13 @@
+ARG PYTHON_VERSION="3.9"
 FROM docker.io/amd64/python:${PYTHON_VERSION}-alpine
 
 LABEL maintainer="Florian JUDITH <florian.judith.b@gmail.com>"
 
-ARG PYTHON_VERSION="3.9"
 ARG USER="nozzle"
 ARG GROUP="restricted"
 ARG UID="1010"
 ARG GID="1010"
+
 
 ENV USER_HOME="/home/${USER}"
 
