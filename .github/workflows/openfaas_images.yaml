@@ -72,12 +72,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           tags: ${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_MAJOR }}-openfaas-python${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_MINOR }}-openfaas-python${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_PATCH }}-openfaas-python${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:openfaas-python${{ matrix.python }}
-          build-args: >-
-            VCS_REF=${{ github.ref }},
-            VERSION=${{ env.SEMVER_PATCH }},
-            BUILD_DATE=${{ env.BUILD_DATE }},
-            PYTHON_VERSION=${{ matrix.python }},
-            ADDITIONAL_PACKAGE=build-base
+          build-args: VCS_REF=${{ github.ref }},VERSION=${{ env.SEMVER_PATCH }},BUILD_DATE=${{ env.BUILD_DATE }},PYTHON_VERSION=${{ matrix.python }},ADDITIONAL_PACKAGE='build-base'
           context: build/${{ matrix.image }}/
           file: build/${{ matrix.image }}/Dockerfile
           platforms: linux/amd64
