@@ -1,4 +1,5 @@
-FROM kubeless/python:3.6
+ARG PYTHON_VERSION="3.6"
+FROM kubeless/python:${PYTHON_VERSION}}
 
 LABEL maintainer="Florian JUDITH <florian.judith.b@gmail.com>"
 

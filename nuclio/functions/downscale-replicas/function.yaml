@@ -20,7 +20,7 @@ spec:
     baseImage: python:3.6-alpine
     commands:
       - "apk add --update --no-cache ca-certificates"
-      - "pip install kubernetes==10.0.1"
+      - "pip install kubernetes==17.17.0"
   triggers:
     downscale-replicas:
       kind: nats
