@@ -57,7 +57,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          tags: ${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_MAJOR }}-kubeless-python-${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_MINOR }}-kubeless-python-${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_PATCH }}-kubeless-python-${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:kubeless-python-${{ matrix.python }}
+          tags: ${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_MAJOR }}-kubeless-python${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_MINOR }}-kubeless-python${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:${{ env.SEMVER_PATCH }}-kubeless-python${{ matrix.python }},${{ env.REPO }}/${{ matrix.image }}:kubeless-python${{ matrix.python }}
           build-args:
             VCS_REF=${{ github.ref }}
             VERSION=${{ env.SEMVER_PATCH }}
