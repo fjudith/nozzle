@@ -15,10 +15,6 @@ on:
     - 'argo/steps/publish-resources/**'
     - 'argo/steps/rescale-replicas/**'
     - 'argo/steps/update-ingress/**'
-  schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron:  "0 6 * * 1-7"
-
 
 env:
   REPO: "docker.io/fjudith"
