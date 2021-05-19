@@ -17,7 +17,8 @@ RUN mkdir -p /kubeless /function
 
 # Install required dependencies
 COPY ./requirements.txt /kubeless/
-RUN pip install --prefix=${KUBELESS_INSTALL_VOLUME} -r ${KUBELESS_DEPS_FILE}
+RUN pip install --upgrade pip && \
+    pip install --prefix=${KUBELESS_INSTALL_VOLUME} -r ${KUBELESS_DEPS_FILE}
 # RUN pip install -r ${KUBELESS_DEPS_FILE}
 # Rescaler Website pod specification and static content
 COPY ./templates /function/templates
