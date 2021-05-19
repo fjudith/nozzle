@@ -25,12 +25,12 @@ env:
 
 jobs:
   image-build:
-    name: 'Building ${{ matrix.images }} Python version: "${{ matrix.python }}"'
+    name: 'Python ${{ matrix.python }}: Building ${{ matrix.image }}'
     runs-on: ubuntu-20.04
     
     strategy:
       matrix:
-        images:
+        image:
           - deploy-rescaler
           - downscale-replicas
           - publish-resources
@@ -78,7 +78,7 @@ jobs:
             VERSION=${{ env.SEMVER_PATCH }}
             BUILD_DATE=${{ env.BUILD_DATE }}
             PYTHON_VERSION=${{ matrix.python }}
-          context: argo/steps/${{ matrix.images }}/
-          file: argo/steps/${{ matrix.images }}/Dockerfile
+          context: argo/steps/${{ matrix.image }}/
+          file: argo/steps/${{ matrix.image }}/Dockerfile
           platforms: linux/amd64
           push: true
