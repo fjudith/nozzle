@@ -55,8 +55,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - run:
-          working-directory: openfaas/
+      - run: |
+          cp -Rf openfaas/* .
       
       - name: Pull template
         uses: docker://openfaas/faas-cli:latest-root
