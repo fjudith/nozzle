@@ -1,5 +1,5 @@
-ARG PYTHON_VERSION="3.6"
-FROM kubeless/python:${PYTHON_VERSION}
+ARG PYTHON_VERSION="3.8"
+FROM docker.io/kubeless/python:${PYTHON_VERSION}
 
 LABEL maintainer="Florian JUDITH <florian.judith.b@gmail.com>"
 
