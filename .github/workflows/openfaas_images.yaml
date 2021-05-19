@@ -58,4 +58,4 @@ jobs:
           sha256sum --check faas-cli.sha256 && \
           chmod +x ./faas-cli && sudo mv ./faas-cli /usr/local/bin/ && \
           faas-cli build -f ./stack.yml -o dev && \
-          faas-cli push -f ./stack
+          faas-cli push -f ./stack.yml
