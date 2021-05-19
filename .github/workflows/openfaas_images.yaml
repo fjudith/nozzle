@@ -77,7 +77,7 @@ jobs:
             VERSION=${{ env.SEMVER_PATCH }}
             BUILD_DATE=${{ env.BUILD_DATE }}
             PYTHON_VERSION=${{ matrix.python }}
-            ADDITIONAL_PACKAGE="build-base gcc"
+            ADDITIONAL_PACKAGE=build-base gcc
           context: build/${{ matrix.image }}/
           file: build/${{ matrix.image }}/Dockerfile
           platforms: linux/amd64
