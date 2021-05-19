@@ -8,7 +8,7 @@ ENV FUNC_HANDLER="handle" \
     KUBELESS_INSTALL_VOLUME="/kubeless"
 
 ENV KUBELESS_DEPS_FILE="${KUBELESS_INSTALL_VOLUME}/requirements.txt" \
-    PYTHONPATH="${KUBELESS_INSTALL_VOLUME}/lib/python${PYTHON_VERSION}/site-packages:${KUBELESS_INSTALL_VOLUME}" \
+    PYTHONPATH="${PYTHONPATH}:${KUBELESS_INSTALL_VOLUME}/lib/python${PYTHON_VERSION}/site-packages:${KUBELESS_INSTALL_VOLUME}" \
     PATH="${PATH}:${KUBELESS_INSTALL_VOLUME}/bin"
 
 USER root
@@ -17,8 +17,8 @@ RUN mkdir -p /kubeless /function
 
 # Install required dependencies
 COPY ./requirements.txt /kubeless/
-RUN pip install --prefix=${KUBELESS_INSTALL_VOLUME} -r ${KUBELESS_DEPS_FILE}
-
+# RUN pip install --prefix=${KUBELESS_INSTALL_VOLUME} -r ${KUBELESS_DEPS_FILE}
+RUN pip install -r ${KUBELESS_DEPS_FILE}
 # Rescaler Website pod specification and static content
 COPY ./templates /function/templates
 
