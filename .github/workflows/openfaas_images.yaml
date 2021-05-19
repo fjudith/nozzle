@@ -48,13 +48,14 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      
+
+
       - name: Build images using OpenFaaS client
+        working-directory: openfaas/
         run: |
           curl -sLO https://github.com/openfaas/faas-cli/releases/download/0.13.9/faas-cli && \
           curl -sLO https://github.com/openfaas/faas-cli/releases/download/0.13.9/faas-cli.sha256 && \
           sha256sum --check faas-cli.sha256 && \
           chmod +x ./faas-cli && sudo mv ./faas-cli /usr/local/bin/ && \
-          cd openfaas && \
           faas-cli build -f ./stack.yml -o dev && \
-          faas-cli push
+          faas-cli push -f ./stack
