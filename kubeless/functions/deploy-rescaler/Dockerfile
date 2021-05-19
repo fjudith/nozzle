@@ -1,5 +1,5 @@
 ARG PYTHON_VERSION="3.6"
-FROM kubeless/python:${PYTHON_VERSION}}
+FROM kubeless/python:${PYTHON_VERSION}
 
 LABEL maintainer="Florian JUDITH <florian.judith.b@gmail.com>"
 
@@ -8,7 +8,7 @@ ENV FUNC_HANDLER="handle" \
     KUBELESS_INSTALL_VOLUME="/kubeless"
 
 ENV KUBELESS_DEPS_FILE="${KUBELESS_INSTALL_VOLUME}/requirements.txt" \
-    PYTHONPATH="${KUBELESS_INSTALL_VOLUME}/lib/python3.6/site-packages:${KUBELESS_INSTALL_VOLUME}" \
+    PYTHONPATH="${KUBELESS_INSTALL_VOLUME}/lib/python${PYTHON_VERSION}/site-packages:${KUBELESS_INSTALL_VOLUME}" \
     PATH="${PATH}:${KUBELESS_INSTALL_VOLUME}/bin"
 
 USER root
