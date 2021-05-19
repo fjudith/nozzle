@@ -23,7 +23,7 @@ env:
 
 jobs:
   image-build:
-    name: 'Python ${{ matrix.python }} ${{ matrix.image }}'
+    name: '${{ matrix.image }}(Python: ${{ matrix.python }})'
     runs-on: ubuntu-20.04
     
     strategy:
