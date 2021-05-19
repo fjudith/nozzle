@@ -60,4 +60,3 @@ rules:
       - statefulsets/scale
     verbs:
       - patch
-

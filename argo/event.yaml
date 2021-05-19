@@ -1,32 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Gateway
+kind: EventSource
 metadata:
-  name: nozzle-webhook
-  namespace: argo-events
+  name: nozzle-event-source
+  namespace: argo
 spec:
-  replica: 1
-  type: webhook
-  eventSourceRef:
-    name: nozzle-event-source
-  template:
-    serviceAccountName: argo-events-sa
   service:
     ports:
       - port: 8080
         targetPort: 8080
-  subscribers:
-    http:
-      - "http://nozzle-rescale-replicas-sensor.argo.svc:9300/"
----
-apiVersion: argoproj.io/v1alpha1
-kind: EventSource
-metadata:
-  name: nozzle-event-source
-  namespace: argo-events
-spec:
-  type: webhook
   webhook:
-    # gateway can run multiple HTTP servers. Simply define a unique port to start a new HTTP server
+    # event-source can run multiple HTTP servers. Simply define a unique port to start a new HTTP server
     rescale:
       # port to run HTTP server on
       port: "8080"
@@ -45,11 +28,8 @@ spec:
     serviceAccountName: argo-events-sa
   dependencies:
     - name: webhook
-      gatewayName: nozzle-webhook
+      eventSourceName: nozzle-event-source
       eventName: rescale
-  subscription:
-    http:
-      port: 9300
   triggers:
     - template:
         name: nozzle-rescale-replicas

@@ -100,7 +100,7 @@ spec:
       imagePullPolicy: Always
       env:
       - name: TRIGGER_URL
-        value: 'http://nozzle-webhook-gateway.argo-events:8080'
+        value: 'http://nozzle-event-source-eventsource-svc.argo:8080'
       command: ["python"]
       args:
       - "handler.py"
